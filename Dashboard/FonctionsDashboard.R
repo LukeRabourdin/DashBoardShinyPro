@@ -1,0 +1,1721 @@
+
+
+
+#########################
+#   Header
+#########################
+header_css <- function() {
+  tags$style(HTML("
+    .app-header {
+      position: relative;
+      height: 90px;
+      padding: 0 32px;
+
+      display: flex;
+      align-items: center;
+
+      font-size: 22px;
+      font-weight: 600;
+      color: #1f2d3d;
+
+      background:
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #f3f5f8 100%
+        );
+
+      overflow: hidden;
+    }
+
+    /* ==============================
+       GRANDE DIAGONALE COLORÉE
+       ============================== */
+    .app-header::before {
+      content: '';
+      position: absolute;
+      inset: -40% -20% -40% 40%;
+
+      background: linear-gradient(
+        135deg,
+        rgba(0, 180, 216, 0.45),
+        rgba(72, 202, 228, 0.35),
+        rgba(173, 232, 244, 0.25),
+        rgba(255, 200, 221, 0.20),
+        rgba(255, 255, 255, 0.0)
+      );
+
+      transform: rotate(-8deg);
+      filter: blur(40px);
+    }
+
+    /* ==============================
+       VOILE COURBE HAUT
+       ============================== */
+    .app-header::after {
+      content: '';
+      position: absolute;
+      top: -120px;
+      left: -20%;
+      width: 140%;
+      height: 200px;
+
+      background: radial-gradient(
+        ellipse at center,
+        rgba(255,255,255,0.85),
+        rgba(255,255,255,0.0) 70%
+      );
+    }
+
+    /* ==============================
+       LIGNES DIAGONALES SUBTILES
+       ============================== */
+    .app-header-lines {
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(
+          -12deg,
+          rgba(0,0,0,0.02) 0px,
+          rgba(0,0,0,0.02) 1px,
+          transparent 1px,
+          transparent 60px
+        );
+      pointer-events: none;
+    }
+
+    /* ==============================
+       OMBRE BASSE
+       ============================== */
+    .app-header {
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+  "))
+}
+
+container_size_js <- function() {
+  tags$script(HTML("
+Shiny.addCustomMessageHandler('measure_container', function(message) {
+
+  const el = document.getElementById(message.id);
+  if (!el) return;
+
+  const rect = el.getBoundingClientRect();
+
+  Shiny.setInputValue(message.id + '_size', {
+    width: rect.width,
+    height: rect.height
+  }, {priority: 'event'});
+
+});
+"))
+
+
+}
+
+
+
+
+ui_header <- function(title = "Dashboard générique") {
+  tagList(
+    header_css(),
+    tags$div(
+      class = "app-header",
+      tags$div(class = "app-header-lines"),
+      title
+    )
+  )
+}
+
+
+copyCard <- function() {
+  tagList(
+    tags$div(
+      id = "global-toast",
+      "Image copiée dans le presse-papier",
+      style = "
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #ffffff;
+        color: #000000;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        box-shadow: 0 4px 12px rgba(0,0,0,.15);
+        display: none;
+        z-index: 9999;
+      "
+    ),
+    
+    tags$script(src = "html2canvas.min.js"),
+    
+    tags$script(HTML("
+      async function copyImageFromButton(btn) {
+        try {
+          const container = btn.closest('.copy-target');
+          if (!container) return;
+
+          const canvas = await html2canvas(container, {
+            backgroundColor: '#ffffff',
+            scale: 2,
+            useCORS: true
+          });
+
+          canvas.toBlob(async function(blob) {
+            await navigator.clipboard.write([
+              new ClipboardItem({ 'image/png': blob })
+            ]);
+            showGlobalToast();
+          });
+
+        } catch (e) {
+          console.error('Snapshot copy failed', e);
+        }
+      }
+
+      function showGlobalToast() {
+        const toast = document.getElementById('global-toast');
+        if (!toast) return;
+
+        toast.style.display = 'block';
+        setTimeout(() => {
+          toast.style.display = 'none';
+        }, 1500);
+      }
+    "))
+  )
+}
+
+
+
+#########################
+#   Tabs
+#########################
+tabs_css <- function() {
+  tags$style(HTML("
+    .tabs-bar {
+      display: flex;
+      gap: 8px;
+      padding: 12px 24px;
+      background: #ffffff;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .tab-btn {
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: none;
+      background: transparent;
+      font-size: 13px;
+      cursor: pointer;
+      color: #4a5d73;
+      position: relative;
+      transition:
+        background-color 0.15s ease,
+        color 0.15s ease,
+        transform 0.1s ease;
+    }
+    
+    .tab-btn:hover {
+      background: rgba(0, 94, 184, 0.08);
+      color: #005EB8;
+      transform: translateY(-1px);
+    }
+
+    .tab-btn.active {
+      background: #e8f0ff;
+      color: #005EB8;
+      font-weight: 600;
+    }
+    .tab-btn:focus {
+      outline: none;
+      box-shadow: none;
+    }
+
+    
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      left: 20%;
+      right: 20%;
+      bottom: -6px;
+      height: 3px;
+      background: #005EB8;
+      border-radius: 999px;
+    }
+
+    
+    .tabs-content {
+      height: calc(100vh - 140px); /* header + tabs */
+      overflow-y: auto;
+      padding: 24px;
+      background: #f5f7fa;
+    }
+  "))
+}
+
+ui_tabs <- function(id, tabs) {
+  ns <- NS(id)
+  tagList(
+    tabs_css(),
+    
+    tags$div(
+      class = "tabs-bar",
+      lapply(seq_along(tabs), function(i) {
+        tab <- tabs[[i]]
+        
+        tags$button(
+          tab,
+          class = paste("tab-btn", if (i == 1) "active"),
+          onclick = sprintf(
+            "
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            Shiny.setInputValue('%s', '%s', {priority: 'event'});
+            ",
+            ns("active_tab"), tab
+          )
+        )
+      })
+    ),
+    
+    tags$div(
+      class = "tabs-content",
+      uiOutput(ns("content"))
+    )
+  )
+}
+
+
+tabs_server <- function(id, content_map) {
+  moduleServer(id, function(input, output, session) {
+    
+    active_tab <- reactiveVal(names(content_map)[1])
+    
+    observeEvent(input$active_tab, {
+      active_tab(input$active_tab)
+    })
+    
+    output$content <- renderUI({
+      content_map[[active_tab()]]()
+    })
+    
+    return(active_tab)
+  })
+}
+
+
+
+
+###################
+#  Grid
+###################
+dashboard_grid_css <- function() {
+  tags$style(HTML("
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      align-items: start;
+    }
+    
+    
+    .grid-span-1 { grid-column: span 1; }
+    .grid-span-2 { grid-column: span 2; }
+    .grid-span-3 { grid-column: span 3; }
+    .grid-span-full { grid-column: 1 / -1; }
+    
+  "))
+}
+
+ui_dashboard_grid <- function(...) {
+  tagList(
+    dashboard_grid_css(),
+    tags$div(
+      class = "dashboard-grid",
+      ...
+    )
+  )
+}
+
+
+##############################
+#         Search Bar
+##############################
+search_bar_css <- function() {
+  tags$style(HTML("
+    /* ==============================
+       CONTAINER GLOBAL
+       ============================== */
+
+    .search-container {
+      display: flex;
+      justify-content: center;
+      margin: 30px 0;
+    }
+
+    .search-box {
+      width: 520px;
+      position: relative; /* reference pour le bouton */
+    }
+
+    /* ==============================
+       INPUT DE RECHERCHE
+       ============================== */
+
+    .search-input {
+      width: 100%;
+      padding: 14px 56px 14px 20px; /* espace pour la loupe */
+      font-size: 16px;
+      font-weight: 500;
+      color: #1f2d3d;
+
+      border-radius: 999px;
+      border: 1px solid #d0d7e2;
+      background-color: #ffffff;
+      outline: none;
+
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+
+      transition:
+        box-shadow 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.15s ease;
+    }
+
+    .search-input::placeholder {
+      color: #8fa1b8;
+      font-weight: 400;
+    }
+
+    .search-input:focus {
+      border-color: #005EB8;
+      box-shadow: 0 4px 12px rgba(0,94,184,0.18);
+      transform: translateY(-1px);
+    }
+
+    /* ==============================
+       BOUTON LOUPE
+       ============================== */
+
+    .search-btn {
+      position: absolute;
+      top: 50%;
+      right: 8px;
+      transform: translateY(-50%);
+
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+
+      border: none;
+      background: transparent;
+      cursor: pointer;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .search-btn:hover {
+      background-color: rgba(0,94,184,0.08);
+    }
+
+    .search-btn img {
+      width: 18px;
+      height: 18px;
+      opacity: 0.6;
+      transition: opacity 0.15s ease;
+    }
+
+    .search-input:focus + .search-btn img {
+      opacity: 1;
+    }
+
+    /* ==============================
+       SUGGESTIONS
+       ============================== */
+
+    .suggestions {
+      position: absolute;
+      top: calc(100% + 8px);
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 10;
+      overflow: hidden;
+    }
+
+    .suggestion-item {
+      padding: 10px 20px;
+      font-size: 15px;
+      cursor: pointer;
+      transition:
+        background-color 0.15s ease,
+        border-left-color 0.15s ease;
+      border-left: 3px solid transparent;
+    }
+
+    .suggestion-item:hover {
+      background-color: #f5f8fd;
+      border-left-color: #005EB8;
+    }
+  "))
+}
+
+
+ui_search_bar <- function(id) {
+  ns <- NS(id)
+  
+  tagList(
+    search_bar_css(),
+    
+    tags$div(
+      class = "search-container",
+      tags$div(
+        class = "search-box",
+        
+        tags$input(
+          id = ns("query"),
+          class = "search-input",
+          type = "text",
+          placeholder = "Rechercher une collectivité...",
+          onblur = sprintf(
+            "Shiny.setInputValue('%s', Math.random())",
+            ns("blur")
+          )
+        ),
+        
+        tags$button(
+          id = ns("go"),
+          type = "button",
+          class = "search-btn",
+          tags$img(src = "emojis/search.svg")
+        ),
+        
+        uiOutput(ns("suggestions"))
+      )
+    )
+  )
+}
+
+
+search_server <- function(id, keys) {
+  moduleServer(id, function(input, output, session) {
+    
+    # Etat interne
+    show_suggestions <- reactiveVal(FALSE)
+    selected <- reactiveVal(NULL)
+    
+    # -------------------------
+    # Suggestions visibles
+    # -------------------------
+    observeEvent(input$query, {
+      show_suggestions(TRUE)
+    }, ignoreInit = TRUE)
+    
+    observeEvent(input$blur, {
+      show_suggestions(FALSE)
+    })
+    
+    # -------------------------
+    # Filtrage
+    # -------------------------
+    filtered_keys <- reactive({
+      req(input$query)
+      keys[grepl(input$query, keys, ignore.case = TRUE)]
+    })
+    
+    # -------------------------
+    # Clic sur suggestion
+    # -------------------------
+    output$suggestions <- renderUI({
+      req(show_suggestions())
+      req(input$query)
+      
+      suggestions <- head(filtered_keys(), 6)
+      if (length(suggestions) == 0) return(NULL)
+      
+      tags$div(
+        class = "suggestions",
+        lapply(suggestions, function(k) {
+          tags$div(
+            class = "suggestion-item",
+            k,
+            
+            # IMPORTANT: mousedown se déclenche AVANT blur
+            onmousedown = sprintf(
+              "
+          Shiny.setInputValue('%s', '%s', {priority: 'event'});
+          document.getElementById('%s').value = '%s';
+          document.getElementById('%s').blur();
+          ",
+              session$ns("validated"), k,
+              session$ns("query"), k,
+              session$ns("query")
+            )
+          )
+        })
+      )
+    })
+    
+    
+    # -------------------------
+    # Validation par clic bouton
+    # -------------------------
+    observeEvent(input$go, {
+      if (input$query %in% keys)
+        selected(input$query)
+    })
+    
+    # -------------------------
+    # Validation par suggestion
+    # -------------------------
+    observeEvent(input$validated, {
+      selected(input$validated)
+    })
+    
+    return(selected)
+  })
+}
+
+
+
+search_bar_js <- function(id) {
+  ns <- NS(id)
+  
+  tags$script(HTML(sprintf("
+    document.addEventListener('click', function(e) {
+      const input = document.getElementById('%s');
+      const suggestions = document.getElementById('%s-suggestions-wrapper');
+
+      if (!input || !suggestions) return;
+
+      if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+        Shiny.setInputValue('%s-clear', Math.random());
+      }
+    });
+  ",
+                           ns("query"),
+                           ns("suggestions"),
+                           ns("clear")
+  )))
+}
+
+##############################
+#         UI CARD
+##############################
+
+ui_card <- function(
+    title = NULL,
+    subtitle = NULL,
+    size = c("small", "normal", "large"),
+    span = c("span1", "span2", "span3", "spanfull"),
+    ...
+) {
+  size <- match.arg(size)
+  span <- match.arg(span)
+  
+  span_class <- switch(
+    span,
+    span1 = "grid-span-1",
+    span2 = "grid-span-2",
+    span3 = "grid-span-3",
+    spanfull = "grid-span-full"
+  )
+  
+  tags$div(
+    class = paste("ui-card", paste0("size-", size), span_class, "copy-target"),
+    
+    tags$button(
+      type = "button",
+      class = "card-copy-btn",
+      onclick = "copyImageFromButton(this)",
+      icon("copy")
+    ),
+    
+    if (!is.null(title) || !is.null(subtitle))
+      tags$div(
+        class = "ui-card-header",
+        if (!is.null(title)) tags$div(class = "ui-card-title", title),
+        if (!is.null(subtitle)) tags$div(class = "ui-card-subtitle", subtitle)
+      ),
+    
+    tags$div(class = "ui-card-body", ...)
+  )
+}
+
+
+
+
+ui_card_css <- function() {
+  tags$style(HTML("
+    .ui-card{
+      /* base */
+      background:#fff;
+      border-radius:18px;
+      box-shadow:0 8px 24px rgba(0,0,0,0.08);
+      position:relative;
+      box-sizing:border-box;
+
+      /* layout */
+      display:flex;
+      flex-direction:column;
+
+      /* tokens */
+      --card-pad: 20px;
+      --header-gap: 12px;          /* margin-bottom header */
+      --header-min: 42px;          /* hauteur typique titre+sous-titre */
+      --svg-h: 0px;                /* calculé plus bas */
+
+      padding: var(--card-pad);
+    }
+
+    /* une seule règle à changer: la hauteur de card par size */
+    .ui-card.size-small  { --card-h: 260px; height: var(--card-h); }
+    .ui-card.size-normal { --card-h: 340px; height: var(--card-h); }
+    .ui-card.size-large  { --card-h: 440px; height: var(--card-h); }
+
+    /* header */
+    .ui-card-header{
+      flex:0 0 auto;
+      margin-bottom: var(--header-gap);
+      min-height: var(--header-min);
+    }
+    .ui-card-title{
+      font-weight:600;
+      font-size:15px;
+      color:#1f2d3d;
+      line-height:1.2;
+    }
+    .ui-card-subtitle{
+      font-size:12px;
+      color:#7a8ca3;
+      line-height:1.2;
+      margin-top:4px;
+    }
+
+    /* body: prend l'espace restant, et IMPORTANT pour flex shrink */
+    .ui-card-body{
+      flex:1 1 auto;
+      min-height:0;
+      overflow:visible;
+      display:flex;
+      /* calc hauteur dispo pour le svg:
+         card - padding*2 - header - gap */
+      --svg-h: calc(var(--card-h) - (var(--card-pad) * 2) - var(--header-min) - var(--header-gap));
+    }
+
+    /* svg = 100% de la zone body, pas de ratio */
+    .ui-card-body svg{
+      width:100%;
+      /*height: var(--svg-h);*/
+    }
+
+
+
+
+    /* copy button */
+    .card-copy-btn{
+      position:absolute;
+      top:12px;
+      right:12px;
+      background:#fff;
+      border:none;
+      padding:6px 8px;
+      border-radius:8px;
+      cursor:pointer;
+      box-shadow:0 2px 6px rgba(0,0,0,.15);
+      display:none;
+      z-index:5;
+    }
+    .ui-card:hover .card-copy-btn{ display:block; }
+    
+    
+    
+  "))
+}
+
+
+
+
+
+
+
+
+
+
+##############################
+#         Barplot
+##############################
+
+barplot_ui <- function(id) {
+  ns <- NS(id)
+
+  tags$div(
+    id = ns("container"),
+    class = "barplot-container",
+    uiOutput(ns("barplot"))
+  )
+}
+
+barplot_css <- function(){
+  tags$style(HTML("
+  
+
+    .barplot-container{
+      width: 100%;
+      height: var(--svg-h);   /* <-- clé : hauteur réelle */
+      min-height: 80px;       /* garde-fou */
+    }
+    
+    
+
+    .dribble-bar {
+      fill: #58a9c3;
+      transition: transform 0.2s ease, fill 0.2s ease;
+    }
+    .dribble-bar:hover {
+      fill: #3f90aa;
+      transform: translateY(-2px);
+    }
+
+    .dribble-label {
+      font-size: 12px;
+      font-weight: 600;
+      fill: #1f2d3d;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    
+    .dribble-year {
+      font-size: 11px;
+      fill: #7a8ca3;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+  "))
+}
+
+barplot_server <- function(id, data_r) {
+  moduleServer(id, function(input, output, session) {
+
+    # envoyer le ns correct au JS
+    session$onFlushed(function() {
+      session$sendCustomMessage(
+        "measure_container",
+        list(id = session$ns("container"))
+      )
+    }, once = TRUE)
+
+
+    observeEvent(input$container_size, {
+
+      width  <- input$container_size$width
+      height <- input$container_size$height
+
+      if (is.null(width) || width < 20) return()
+
+      df <- data_r()
+      values <- df$value
+      labels <- df$year
+
+      n <- length(values)
+      max_val <- max(values)
+
+      margin_top    <- height * 0.12
+      margin_bottom <- height * 0.18
+      margin_side   <- width  * 0.08
+
+      usable_height <- height - margin_top - margin_bottom
+      usable_width  <- width  - (margin_side * 2)
+
+      bar_width <- usable_width / (n * 1.6)
+      spacing   <- (usable_width - (n * bar_width)) / (n + 1)
+
+      bars <- list()
+
+      for(i in seq_along(values)) {
+        bar_height <- (values[i] / max_val) * usable_height
+
+        x <- margin_side + spacing * i + bar_width * (i - 1)
+        y <- height - margin_bottom - bar_height
+
+        bars[[length(bars)+1]] <- tagList(
+          tags$rect(
+            x = x, y = y,
+            width = bar_width, height = bar_height,
+            rx = min(bar_width/2, 12),
+            class = "dribble-bar"
+          ),
+          tags$text(
+            x = x + bar_width/2,
+            y = y - height*0.04,
+            class = "dribble-label",
+            round(values[i],1)
+          ),
+          tags$text(
+            x = x + bar_width/2,
+            y = height - height*0.04,
+            class = "dribble-year",
+            labels[i]
+          )
+        )
+      }
+
+      output$barplot <- renderUI({
+        tags$svg(
+          width = width,
+          height = height,
+          style = "overflow: visible;",
+          viewBox = paste0("0 0 ", width, " ", height),
+          preserveAspectRatio = "none",
+          bars
+        )
+      })
+    })
+  })
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#######################
+#Stacked Barplot
+######################
+
+
+stackedBar_ui <- function(id) {
+  ns <- NS(id)
+  
+  tags$div(
+    class="stacked-wrapper",
+    
+    tags$div(
+      class="stack-legend-vertical",
+      uiOutput(ns("legend"))
+    ),
+    
+    tags$div(
+      class="stacked-graph",
+      uiOutput(ns("bars")),
+      tags$div(id = ns("tooltip"), class = "stack-tooltip")
+    )
+  )
+}
+
+
+
+stackedBar_html_css <- function() {
+  tags$style(HTML("
+
+/* ============================= */
+/* LAYOUT GLOBAL                 */
+/* ============================= */
+
+.stacked-wrapper{
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+  gap: 32px;
+}
+
+/* ============================= */
+/* LEGEND                        */
+/* ============================= */
+
+.stack-legend-vertical{
+  flex: 0 0 110px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  font-size: 11px;
+  color: #5c6f85;
+}
+
+.legend-item{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-color{
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-right:6px;
+}
+
+/* ============================= */
+/* GRAPH CONTAINER               */
+/* ============================= */
+/*
+.stacked-graph{
+  flex: 1 1 auto;
+  position: relative;
+  display: flex;
+  height: 220px;   
+}
+  */
+.stacked-graph{
+  flex: 1 1 auto;
+  position: relative;
+  display: flex;
+  height: calc(
+    var(--card-h)
+    - (var(--card-pad) * 2)
+    - var(--header-min)
+    - var(--header-gap)
+  );
+}
+
+
+/* IMPORTANT : wrapper shiny */
+.stacked-graph > .shiny-html-output{
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-evenly;
+  gap: 32px;
+  width: 100%;
+  height: 100%;
+}
+
+
+/* ============================= */
+/* COLUMN                        */
+/* ============================= */
+
+/*.stack-col{
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  flex: 1 1 0;
+  max-width: 90px;
+}*/
+
+
+.stack-col{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  height:100%;
+  flex:1 1 0;
+  max-width:90px;
+}
+
+
+
+/* ============================= */
+/* BAR                           */
+/* ============================= */
+
+.stack-plot{
+  position:relative;
+  width:100%;
+  height:100%;          /* AJOUT IMPORTANT */
+  display:flex;
+  align-items:flex-end;
+}
+
+.stack-bar{
+  display:flex;
+  position:relative;
+  flex-direction:column-reverse;
+  width:100%;
+     
+}
+
+
+/* segments */
+.stack-seg{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  transition: transform .2s ease;
+}
+
+
+.stack-seg:first-child{
+   border-bottom-left-radius:14px;
+  border-bottom-right-radius:14px;
+}
+
+.stack-seg:last-child{
+ border-top-left-radius:14px;
+  border-top-right-radius:14px;
+
+}
+
+.stack-seg:hover{
+  filter: brightness(1.05);
+  transform:translateY(-1px);
+  box-shadow:0 8px 20px rgba(0,0,0,0.15);
+}
+
+/* year label */
+.stack-year{
+  margin-top: 8px;
+  font-size: 11px;
+  color: #7a8ca3;
+  text-align: center;
+}
+
+
+.stack-total{
+  position: absolute;
+  bottom: 100%;         /* au sommet réel de la barre */
+  left: 0;
+  width: 100%;
+  margin-bottom: 6px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1f2d3d;
+}
+
+/* ============================= */
+/* TOOLTIP                       */
+/* ============================= */
+
+.stack-tooltip{
+  position: absolute;
+  pointer-events: none;
+  background: white;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  display: none;
+  z-index: 999;
+  min-width: 160px;
+}
+
+.tooltip-title{
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.tooltip-line{
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.tooltip-dot{
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+"))
+}
+
+
+stackedBar_server <- function(id, data_r, unit = "") {
+  
+  moduleServer(id, function(input, output, session) {
+    
+    # -----------------------------
+    # LEGEND
+    # -----------------------------
+    
+    output$legend <- renderUI({
+      
+      df <- data_r()
+      values <- df[, -1, drop = FALSE]
+      vars <- colnames(values)
+      k <- ncol(values)
+      
+      colors <- c(
+        "#2E5B9A", "#4CAF50", "#F39C12",
+        "#9C27B0", "#E91E63", "#009688"
+      )[seq_len(k)]
+      
+      lapply(seq_len(k), function(i) {
+        tags$div(
+          class = "legend-item",
+          tags$span(
+            class = "legend-color",
+            style = paste0("background:", colors[i])
+          ),
+          vars[i]
+        )
+      })
+    })
+    
+    
+    # -----------------------------
+    # STACKED BARS
+    # -----------------------------
+    
+    output$bars <- renderUI({
+      
+      df <- data_r()
+      
+      years  <- df$year
+      values <- df[, -1, drop = FALSE]
+      vars   <- colnames(values)
+      
+      totals    <- rowSums(values, na.rm = TRUE)
+      max_total <- max(totals, na.rm = TRUE)
+      
+      n <- nrow(df)
+      k <- ncol(values)
+      
+      colors <- c(
+        "#2E5B9A", "#4CAF50", "#F39C12",
+        "#9C27B0", "#E91E63", "#009688"
+      )[seq_len(k)]
+      
+      tagList(
+        
+        lapply(seq_len(n), function(i) {
+          
+          total_val <- totals[i]
+          
+          # Hauteur globale de la barre vs max global
+          total_height_pct <- if (max_total > 0) {
+            (total_val / max_total) * 100
+          } else {
+            0
+          }
+          
+          tags$div(
+            class = "stack-col",
+            
+            tags$div(
+              class = "stack-plot",
+              
+            
+              
+              # BAR CONTAINER (hauteur proportionnelle au total)
+              tags$div(
+                class = "stack-bar",
+                style = paste0(
+                  "height:", round(total_height_pct, 2), "%;"
+                ),
+                # TOTAL (au-dessus de la barre)
+                tags$div(
+                  class = "stack-total",
+                  paste0(round(total_val, 1), unit)
+                ),
+                
+                # SEGMENTS
+                lapply(seq_len(k), function(j) {
+                  
+                  val <- values[i, j]
+                  
+                  segment_pct <- if (total_val > 0) {
+                    (val / total_val) * 100
+                  } else {
+                    0
+                  }
+                  
+                  tags$div(
+                    class = "stack-seg",
+                    style = paste0(
+                      "height:", round(segment_pct, 2), "%;",
+                      "background:", colors[j], ";"
+                    ),
+                    `data-index` = i,
+                    `data-col`   = vars[j],
+                    paste0(round(val, 1), unit)
+                  )
+                })
+              )
+            ),
+            
+            tags$div(class = "stack-year", years[i])
+          )
+        }),
+        
+        stackedBar_js(session$ns("tooltip"), df, unit)
+      )
+    })
+    
+  })
+}
+
+
+
+
+stackedBar_js <- function(id, df, unit){
+  
+  json <- jsonlite::toJSON(df, auto_unbox = TRUE, dataframe = "rows")
+  
+  tags$script(HTML(
+    paste0("
+    (function(){
+
+      const tooltip = document.getElementById('", id, "');
+      if(!tooltip) return;
+
+      const graph = tooltip.closest('.stacked-graph');
+      if(!graph) return;
+
+      const data = ", json, ";
+      const unit = '", unit, "';
+
+      graph.querySelectorAll('.stack-seg').forEach(seg => {
+
+        seg.addEventListener('mouseenter', function(e){
+
+          const index = Number(this.dataset.index) - 1;
+          const row = data[index];
+
+          let total = 0;
+          let html = `<div class='tooltip-title'>${row.year}</div>`;
+
+          Object.keys(row).forEach(k => {
+
+            if(k === 'year') return;
+
+            const v = Number(row[k] || 0);
+            total += v;
+
+            html += `
+              <div class='tooltip-line'>
+                <span style='display:flex;align-items:center;gap:6px;'>
+                  <span style='
+                    width:8px;
+                    height:8px;
+                    border-radius:50%;
+                    background:${getColor(index, k)};
+                    display:inline-block;
+                  '></span>
+                  ${k}
+                </span>
+                <span>${v}${unit}</span>
+              </div>
+            `;
+          });
+
+          html += `
+            <div class='tooltip-line'>
+              <strong>Total</strong>
+              <strong>${total}${unit}</strong>
+            </div>
+          `;
+
+          tooltip.innerHTML = html;
+          tooltip.style.display = 'block';
+        });
+
+        seg.addEventListener('mousemove', function(e){
+          const rect = graph.getBoundingClientRect();
+          tooltip.style.left = (e.clientX - rect.left + 15) + 'px';
+          tooltip.style.top  = (e.clientY - rect.top - 10) + 'px';
+        });
+
+        seg.addEventListener('mouseleave', function(){
+          tooltip.style.display = 'none';
+        });
+
+      });
+
+      function getColor(rowIndex, colName){
+        const seg = graph.querySelector(
+          `.stack-seg[data-index='${rowIndex+1}'][data-col='${colName}']`
+        );
+        return seg ? getComputedStyle(seg).backgroundColor : '#999';
+      }
+
+    })();
+    "
+    )))
+}
+
+
+#######################
+# Grouped Barplot UI
+#######################
+
+groupBar_ui <- function(id) {
+  ns <- NS(id)
+  
+  tags$div(
+    class="group-wrapper",
+    
+    tags$div(
+      class="group-legend-vertical",
+      uiOutput(ns("legend"))
+    ),
+    
+    tags$div(
+      class="group-graph",
+      uiOutput(ns("bars")),
+      tags$div(id = ns("tooltip"), class = "group-tooltip")
+    )
+  )
+}
+
+
+groupBar_html_css <- function() {
+  tags$style(HTML("
+
+/* ============================= */
+/* LAYOUT GLOBAL                 */
+/* ============================= */
+
+.group-wrapper{
+  display:flex;
+  flex-direction:row;
+  width:100%;
+  height:100%;
+  gap:32px;
+}
+
+/* ============================= */
+/* LEGEND                        */
+/* ============================= */
+
+.group-legend-vertical{
+  flex:0 0 110px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:10px;
+  font-size:11px;
+  color:#5c6f85;
+}
+
+.legend-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.legend-color{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  flex-shrink:0;
+  margin-right:6px;
+}
+
+/* ============================= */
+/* GRAPH                         */
+/* ============================= */
+
+.group-graph{
+  flex:1 1 auto;
+  position:relative;
+  display:flex;
+  height:calc(
+    var(--card-h)
+    - (var(--card-pad) * 2)
+    - var(--header-min)
+    - var(--header-gap)
+  );
+}
+
+.group-graph > .shiny-html-output{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-evenly;
+  gap:32px;
+  width:100%;
+  height:100%;
+}
+
+/* ============================= */
+/* COLUMN (YEAR)                 */
+/* ============================= */
+
+.group-col{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  height:100%;
+  flex:1 1 0;
+  max-width:120px;
+}
+
+/* ============================= */
+/* BAR ZONE                      */
+/* ============================= */
+
+.group-plot{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+}
+
+.group-bars{
+  display:flex;
+  align-items:flex-end;
+  gap:10px;
+  width:100%;
+  height:100%;
+  justify-content:center;
+}
+
+/* ============================= */
+/* BAR                           */
+/* ============================= */
+
+.group-bar{
+  position:relative;
+  width:18px;
+  border-radius:14px 14px 14px 14px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  font-size:10px;
+  font-weight:600;
+  color:white;
+  transition:transform .2s ease;
+}
+
+.group-bar:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 20px rgba(0,0,0,0.15);
+}
+
+/* year label */
+.group-year{
+  margin-top:8px;
+  font-size:11px;
+  color:#7a8ca3;
+  text-align:center;
+}
+
+/* ============================= */
+/* TOOLTIP                       */
+/* ============================= */
+
+.group-tooltip{
+  position:absolute;
+  pointer-events:none;
+  background:white;
+  padding:12px 14px;
+  border-radius:12px;
+  font-size:12px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.15);
+  display:none;
+  z-index:999;
+  min-width:160px;
+}
+
+.tooltip-title{
+  font-weight:600;
+  margin-bottom:6px;
+}
+
+.tooltip-line{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:4px;
+}
+
+.tooltip-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  display:inline-block;
+  margin-right:6px;
+}
+
+"))
+}
+
+
+
+groupBar_server <- function(id, data_r, unit = "") {
+  
+  moduleServer(id, function(input, output, session) {
+    
+    output$legend <- renderUI({
+      
+      df <- data_r()
+      values <- df[, -1, drop = FALSE]
+      vars <- colnames(values)
+      k <- ncol(values)
+      
+      colors <- c(
+        "#2E5B9A", "#4CAF50", "#F39C12",
+        "#9C27B0", "#E91E63", "#009688"
+      )[seq_len(k)]
+      
+      lapply(seq_len(k), function(i) {
+        tags$div(
+          class="legend-item",
+          tags$span(
+            class="legend-color",
+            style=paste0("background:", colors[i])
+          ),
+          vars[i]
+        )
+      })
+    })
+    
+    
+    output$bars <- renderUI({
+      
+      df <- data_r()
+      
+      years  <- df$year
+      values <- df[, -1, drop = FALSE]
+      vars   <- colnames(values)
+      
+      max_val <- max(values, na.rm = TRUE)
+      
+      n <- nrow(df)
+      k <- ncol(values)
+      
+      colors <- c(
+        "#2E5B9A", "#4CAF50", "#F39C12",
+        "#9C27B0", "#E91E63", "#009688"
+      )[seq_len(k)]
+      
+      tagList(
+        
+        lapply(seq_len(n), function(i) {
+          
+          tags$div(
+            class="group-col",
+            
+            tags$div(
+              class="group-plot",
+              
+              tags$div(
+                class="group-bars",
+                
+                lapply(seq_len(k), function(j) {
+                  
+                  val <- values[i, j]
+                  
+                  height_pct <- if(max_val > 0){
+                    (val / max_val) * 100
+                  } else 0
+                  
+                  tags$div(
+                    class="group-bar",
+                    style=paste0(
+                      "height:", round(height_pct,2), "%;",
+                      "background:", colors[j], ";"
+                    ),
+                    `data-index` = i,
+                    `data-col`   = vars[j],
+                    paste0(round(val,1), unit)
+                  )
+                })
+              )
+            ),
+            
+            tags$div(class="group-year", years[i])
+          )
+        }),
+        
+        groupBar_js(session$ns("tooltip"), df, unit)
+      )
+    })
+    
+  })
+}
+
+
+
+groupBar_js <- function(id, df, unit){
+  
+  json <- jsonlite::toJSON(df, auto_unbox = TRUE, dataframe = "rows")
+  
+  tags$script(HTML(
+    paste0("
+    (function(){
+
+      const tooltip = document.getElementById('", id, "');
+      if(!tooltip) return;
+
+      const graph = tooltip.closest('.group-graph');
+      if(!graph) return;
+
+      const data = ", json, ";
+      const unit = '", unit, "';
+
+      graph.querySelectorAll('.group-bar').forEach(bar => {
+
+        bar.addEventListener('mouseenter', function(){
+
+          const index = Number(this.dataset.index) - 1;
+          const row = data[index];
+
+          let total = 0;
+          let html = `<div class='tooltip-title'>${row.year}</div>`;
+
+          Object.keys(row).forEach(k => {
+
+            if(k === 'year') return;
+
+            const v = Number(row[k] || 0);
+            total += v;
+
+            html += `
+              <div class='tooltip-line'>
+                <span>${k}</span>
+                <span>${v}${unit}</span>
+              </div>
+            `;
+          });
+
+          html += `
+            <div class='tooltip-line'>
+              <strong>Total</strong>
+              <strong>${total}${unit}</strong>
+            </div>
+          `;
+
+          tooltip.innerHTML = html;
+          tooltip.style.display = 'block';
+        });
+
+        bar.addEventListener('mousemove', function(e){
+          const rect = graph.getBoundingClientRect();
+          tooltip.style.left = (e.clientX - rect.left + 15) + 'px';
+          tooltip.style.top  = (e.clientY - rect.top - 10) + 'px';
+        });
+
+        bar.addEventListener('mouseleave', function(){
+          tooltip.style.display = 'none';
+        });
+
+      });
+
+    })();
+    "
+    )))
+}
+
