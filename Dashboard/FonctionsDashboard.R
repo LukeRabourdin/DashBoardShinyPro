@@ -647,11 +647,36 @@ search_bar_js <- function(id) {
 #         UI CARD
 ##############################
 
+card_size_tokens <- function(size = c("small", "normal", "large"), scale = 1) {
+  size <- match.arg(size)
+  scale <- max(0.7, as.numeric(scale))
+
+  base_height <- switch(
+    size,
+    small = 260,
+    normal = 340,
+    large = 440
+  )
+
+  base_pad <- switch(
+    size,
+    small = 16,
+    normal = 20,
+    large = 22
+  )
+
+  list(
+    card_h = round(base_height * scale),
+    card_pad = round(base_pad * min(scale, 1.15))
+  )
+}
+
 ui_card <- function(
     title = NULL,
     subtitle = NULL,
     size = c("small", "normal", "large"),
     span = c("span1", "span2", "span3", "spanfull"),
+    scale = 1,
     ...
 ) {
   size <- match.arg(size)
@@ -664,9 +689,16 @@ ui_card <- function(
     span3 = "grid-span-3",
     spanfull = "grid-span-full"
   )
+
+  tokens <- card_size_tokens(size = size, scale = scale)
+  card_style <- paste0(
+    "--card-h:", tokens$card_h, "px;",
+    "--card-pad:", tokens$card_pad, "px;"
+  )
   
   tags$div(
     class = paste("ui-card", paste0("size-", size), span_class, "copy-target"),
+    style = card_style,
     
     tags$button(
       type = "button",
@@ -710,14 +742,15 @@ ui_card_css <- function() {
       --header-gap: 12px;          /* margin-bottom header */
       --header-min: 42px;          /* hauteur typique titre+sous-titre */
       --svg-h: 0px;                /* calculé plus bas */
+      --card-h: 340px;
 
+      height: var(--card-h);
       padding: var(--card-pad);
     }
 
-    /* une seule règle à changer: la hauteur de card par size */
-    .ui-card.size-small  { --card-h: 260px; height: var(--card-h); }
-    .ui-card.size-normal { --card-h: 340px; height: var(--card-h); }
-    .ui-card.size-large  { --card-h: 440px; height: var(--card-h); }
+    .ui-card.size-small  { --card-h: 260px; }
+    .ui-card.size-normal { --card-h: 340px; }
+    .ui-card.size-large  { --card-h: 440px; }
 
     /* header */
     .ui-card-header{
@@ -1449,7 +1482,7 @@ groupBar_html_css <- function() {
 .legend-item{
   display:flex;
   align-items:center;
-  gap:8px;
+  gap:6px;
 }
 
 .legend-color{
@@ -1516,7 +1549,7 @@ groupBar_html_css <- function() {
 .group-bars{
   display:flex;
   align-items:flex-end;
-  gap:8px;
+  gap:6px;
   width:100%;
   height:100%;
   justify-content:center;
@@ -1528,8 +1561,8 @@ groupBar_html_css <- function() {
 
 .group-bar{
   position:relative;
-  width:14px;
-  border-radius:4px 4px 1px 1px;
+  width:18px;
+  border-radius:5px 5px 1px 1px;
   border: 1px solid rgba(255,255,255,0.18);
   display:flex;
   align-items:flex-start;
