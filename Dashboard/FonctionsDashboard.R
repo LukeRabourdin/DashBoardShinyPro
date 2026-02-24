@@ -24,6 +24,9 @@ design_tokens_css <- function() {
       --shadow-soft: 0 10px 32px rgba(14, 42, 84, 0.10);
       --shadow-strong: 0 20px 44px rgba(14, 42, 84, 0.16);
       --shadow-focus: 0 14px 30px rgba(0, 87, 184, 0.18);
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --motion-fast: 160ms;
     }
 
     body {
@@ -353,9 +356,10 @@ dashboard_grid_css <- function() {
   tags$style(HTML("
     .dashboard-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
       align-items: start;
+      grid-auto-flow: dense;
     }
     
     
@@ -727,10 +731,11 @@ ui_card_css <- function() {
       /* base */
       background: var(--surface-card);
       border: 1px solid var(--stroke-strong);
-      border-radius:16px;
+      border-radius: var(--radius-lg);
       box-shadow: var(--shadow-soft);
       backdrop-filter: blur(12px) saturate(125%);
       position:relative;
+      overflow: hidden;
       box-sizing:border-box;
 
       /* layout */
@@ -751,6 +756,17 @@ ui_card_css <- function() {
     .ui-card.size-small  { --card-h: 260px; }
     .ui-card.size-normal { --card-h: 340px; }
     .ui-card.size-large  { --card-h: 440px; }
+
+    .ui-card::before{
+      content:"";
+      position:absolute;
+      top:0;
+      left:0;
+      right:0;
+      height:3px;
+      background: linear-gradient(90deg, rgba(0,87,184,0.78), rgba(19,163,232,0.65), rgba(90,70,184,0.66));
+      opacity:0.75;
+    }
 
     /* header */
     .ui-card-header{
@@ -805,7 +821,7 @@ ui_card_css <- function() {
       display:none;
       z-index:5;
     }
-    .ui-card:hover { box-shadow: var(--shadow-focus); transform: translateY(-3px); transition: transform 180ms ease, box-shadow 180ms ease; }
+    .ui-card:hover { box-shadow: var(--shadow-focus); transform: translateY(-4px); transition: transform var(--motion-fast) ease, box-shadow var(--motion-fast) ease; }
     .ui-card:hover .card-copy-btn{ display:block; }
     
     
@@ -849,12 +865,17 @@ barplot_css <- function(){
     
 
     .dribble-bar {
-      fill: var(--brand-secondary);
-      transition: transform 0.2s ease, fill 0.2s ease;
+      fill: url(#barGradient);
+      transition: transform 0.2s ease, filter 0.2s ease;
     }
     .dribble-bar:hover {
-      fill: var(--brand-primary);
+      filter: brightness(1.05) saturate(1.1);
       transform: translateY(-2px);
+    }
+
+    .barplot-baseline {
+      stroke: rgba(18,55,97,0.22);
+      stroke-width: 1;
     }
 
     .dribble-label {
@@ -951,6 +972,21 @@ barplot_server <- function(id, data_r) {
           style = "overflow: visible;",
           viewBox = paste0("0 0 ", width, " ", height),
           preserveAspectRatio = "none",
+          tags$defs(
+            tags$linearGradient(
+              id = "barGradient",
+              x1 = "0%", y1 = "0%", x2 = "0%", y2 = "100%",
+              tags$stop(offset = "0%", `stop-color` = "#2EB7F3"),
+              tags$stop(offset = "100%", `stop-color` = "#0C74D1")
+            )
+          ),
+          tags$line(
+            x1 = margin_side,
+            y1 = height - margin_bottom,
+            x2 = width - margin_side,
+            y2 = height - margin_bottom,
+            class = "barplot-baseline"
+          ),
           bars
         )
       })
@@ -1184,14 +1220,16 @@ stackedBar_html_css <- function() {
 .stack-tooltip{
   position: absolute;
   pointer-events: none;
-  background: white;
+  background: rgba(255,255,255,0.96);
+  border: 1px solid var(--stroke-strong);
   padding: 12px 14px;
-  border-radius: 12px;
+  border-radius: 10px;
   font-size: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(8px);
   display: none;
   z-index: 999;
-  min-width: 160px;
+  min-width: 170px;
 }
 
 .tooltip-title{
@@ -1549,7 +1587,7 @@ groupBar_html_css <- function() {
 .group-bars{
   display:flex;
   align-items:flex-end;
-  gap:6px;
+  gap:7px;
   width:100%;
   height:100%;
   justify-content:center;
@@ -1561,7 +1599,7 @@ groupBar_html_css <- function() {
 
 .group-bar{
   position:relative;
-  width:18px;
+  width:20px;
   border-radius:5px 5px 1px 1px;
   border: 1px solid rgba(255,255,255,0.18);
   display:flex;
@@ -1593,14 +1631,16 @@ groupBar_html_css <- function() {
 .group-tooltip{
   position:absolute;
   pointer-events:none;
-  background:white;
+  background:rgba(255,255,255,0.96);
+  border: 1px solid var(--stroke-strong);
   padding:12px 14px;
-  border-radius:12px;
+  border-radius:10px;
   font-size:12px;
-  box-shadow:0 8px 24px rgba(0,0,0,0.15);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(8px);
   display:none;
   z-index:999;
-  min-width:160px;
+  min-width:170px;
 }
 
 .tooltip-title{
