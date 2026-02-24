@@ -1,4 +1,40 @@
 
+relyens_chart_colors <- function(k) {
+  base_colors <- c(
+    "#0057B8", "#13A3E8", "#5A46B8",
+    "#00B894", "#FF8A3D", "#E94E77"
+  )
+  rep(base_colors, length.out = k)
+}
+
+design_tokens_css <- function() {
+  tags$style(HTML("
+    :root {
+      --brand-primary: #0057B8;
+      --brand-secondary: #13A3E8;
+      --brand-tertiary: #5A46B8;
+      --brand-accent: #00B894;
+      --text-primary: #16263A;
+      --text-secondary: #5D7088;
+      --surface-glass: rgba(255, 255, 255, 0.72);
+      --surface-strong: rgba(255, 255, 255, 0.88);
+      --stroke-soft: rgba(255, 255, 255, 0.42);
+      --shadow-soft: 0 10px 32px rgba(14, 42, 84, 0.10);
+      --shadow-strong: 0 20px 44px rgba(14, 42, 84, 0.16);
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 8% 0%, rgba(19,163,232,0.14), transparent 36%),
+        radial-gradient(circle at 90% 6%, rgba(90,70,184,0.12), transparent 32%),
+        linear-gradient(180deg, #F7FAFF 0%, #EEF3FB 100%);
+      color: var(--text-primary);
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+  "))
+}
+
+
 
 
 #########################
@@ -16,14 +52,12 @@ header_css <- function() {
 
       font-size: 22px;
       font-weight: 600;
-      color: #1f2d3d;
+      color: var(--text-primary);
 
-      background:
-        linear-gradient(
-          180deg,
-          #ffffff 0%,
-          #f3f5f8 100%
-        );
+      background: linear-gradient(120deg, rgba(255,255,255,0.92), rgba(237,246,255,0.78));
+      border-bottom: 1px solid var(--stroke-soft);
+      backdrop-filter: blur(10px) saturate(130%);
+      box-shadow: var(--shadow-soft);
 
       overflow: hidden;
     }
@@ -84,12 +118,6 @@ header_css <- function() {
       pointer-events: none;
     }
 
-    /* ==============================
-       OMBRE BASSE
-       ============================== */
-    .app-header {
-      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-    }
   "))
 }
 
@@ -118,6 +146,7 @@ Shiny.addCustomMessageHandler('measure_container', function(message) {
 
 ui_header <- function(title = "Dashboard générique") {
   tagList(
+    design_tokens_css(),
     header_css(),
     tags$div(
       class = "app-header",
@@ -198,8 +227,9 @@ tabs_css <- function() {
       display: flex;
       gap: 8px;
       padding: 12px 24px;
-      background: #ffffff;
-      border-bottom: 1px solid rgba(0,0,0,0.06);
+      background: var(--surface-glass);
+      border-bottom: 1px solid var(--stroke-soft);
+      backdrop-filter: blur(10px);
     }
 
     .tab-btn {
@@ -209,7 +239,7 @@ tabs_css <- function() {
       background: transparent;
       font-size: 13px;
       cursor: pointer;
-      color: #4a5d73;
+      color: var(--text-secondary);
       position: relative;
       transition:
         background-color 0.15s ease,
@@ -218,14 +248,14 @@ tabs_css <- function() {
     }
     
     .tab-btn:hover {
-      background: rgba(0, 94, 184, 0.08);
-      color: #005EB8;
+      background: rgba(0, 87, 184, 0.12);
+      color: var(--brand-primary);
       transform: translateY(-1px);
     }
 
     .tab-btn.active {
-      background: #e8f0ff;
-      color: #005EB8;
+      background: rgba(0, 87, 184, 0.12);
+      color: var(--brand-primary);
       font-weight: 600;
     }
     .tab-btn:focus {
@@ -241,7 +271,7 @@ tabs_css <- function() {
       right: 20%;
       bottom: -6px;
       height: 3px;
-      background: #005EB8;
+      background: var(--brand-primary);
       border-radius: 999px;
     }
 
@@ -250,7 +280,7 @@ tabs_css <- function() {
       height: calc(100vh - 140px); /* header + tabs */
       overflow-y: auto;
       padding: 24px;
-      background: #f5f7fa;
+      background: transparent;
     }
   "))
 }
@@ -390,7 +420,7 @@ search_bar_css <- function() {
     }
 
     .search-input:focus {
-      border-color: #005EB8;
+      border-color: var(--brand-primary);
       box-shadow: 0 4px 12px rgba(0,94,184,0.18);
       transform: translateY(-1px);
     }
@@ -460,7 +490,7 @@ search_bar_css <- function() {
 
     .suggestion-item:hover {
       background-color: #f5f8fd;
-      border-left-color: #005EB8;
+      border-left-color: var(--brand-primary);
     }
   "))
 }
@@ -654,9 +684,11 @@ ui_card_css <- function() {
   tags$style(HTML("
     .ui-card{
       /* base */
-      background:#fff;
-      border-radius:18px;
-      box-shadow:0 8px 24px rgba(0,0,0,0.08);
+      background: var(--surface-glass);
+      border: 1px solid var(--stroke-soft);
+      border-radius:20px;
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(12px) saturate(125%);
       position:relative;
       box-sizing:border-box;
 
@@ -731,6 +763,7 @@ ui_card_css <- function() {
       display:none;
       z-index:5;
     }
+    .ui-card:hover { box-shadow: var(--shadow-strong); transform: translateY(-2px); transition: transform 180ms ease, box-shadow 180ms ease; }
     .ui-card:hover .card-copy-btn{ display:block; }
     
     
@@ -774,11 +807,11 @@ barplot_css <- function(){
     
 
     .dribble-bar {
-      fill: #58a9c3;
+      fill: var(--brand-secondary);
       transition: transform 0.2s ease, fill 0.2s ease;
     }
     .dribble-bar:hover {
-      fill: #3f90aa;
+      fill: var(--brand-primary);
       transform: translateY(-2px);
     }
 
@@ -1156,10 +1189,7 @@ stackedBar_server <- function(id, data_r, unit = "") {
       vars <- colnames(values)
       k <- ncol(values)
       
-      colors <- c(
-        "#2E5B9A", "#4CAF50", "#F39C12",
-        "#9C27B0", "#E91E63", "#009688"
-      )[seq_len(k)]
+      colors <- relyens_chart_colors(k)
       
       lapply(seq_len(k), function(i) {
         tags$div(
@@ -1192,10 +1222,7 @@ stackedBar_server <- function(id, data_r, unit = "") {
       n <- nrow(df)
       k <- ncol(values)
       
-      colors <- c(
-        "#2E5B9A", "#4CAF50", "#F39C12",
-        "#9C27B0", "#E91E63", "#009688"
-      )[seq_len(k)]
+      colors <- relyens_chart_colors(k)
       
       tagList(
         
@@ -1565,10 +1592,7 @@ groupBar_server <- function(id, data_r, unit = "") {
       vars <- colnames(values)
       k <- ncol(values)
       
-      colors <- c(
-        "#2E5B9A", "#4CAF50", "#F39C12",
-        "#9C27B0", "#E91E63", "#009688"
-      )[seq_len(k)]
+      colors <- relyens_chart_colors(k)
       
       lapply(seq_len(k), function(i) {
         tags$div(
@@ -1596,10 +1620,7 @@ groupBar_server <- function(id, data_r, unit = "") {
       n <- nrow(df)
       k <- ncol(values)
       
-      colors <- c(
-        "#2E5B9A", "#4CAF50", "#F39C12",
-        "#9C27B0", "#E91E63", "#009688"
-      )[seq_len(k)]
+      colors <- relyens_chart_colors(k)
       
       tagList(
         

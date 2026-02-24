@@ -14,8 +14,6 @@ library(ggplot2)
 library(arrow)
 
 
-setwd("C:/Users/lrabourdin/Documents/Dossier Travail/Statut/2026/Dashboard")
-
 data <- iris
 data$Key <- names(islands)[sample(1:10, nrow(data), replace = TRUE)]
 keys_available <- sort(unique(data$Key))
@@ -27,10 +25,22 @@ source_utf8 <- function(file) {
   expr <- parse(text = code)
   eval(expr, envir = .GlobalEnv)
 }
-source_utf8("C:/Users/lrabourdin/Documents/Dossier Travail/Statut/2026/Dashboard/FonctionsDashboard.R")
+functions_file <- if (file.exists("Dashboard/FonctionsDashboard.R")) {
+  "Dashboard/FonctionsDashboard.R"
+} else {
+  "FonctionsDashboard.R"
+}
+
+source_utf8(functions_file)
 
 
-addResourcePath("emojis", "Emojis")
+emoji_path <- if (file.exists("Dashboard/Emojis")) {
+  "Dashboard/Emojis"
+} else {
+  "Emojis"
+}
+
+addResourcePath("emojis", emoji_path)
 
 #Dummy Data
 get_bar_data <- function(key) {
