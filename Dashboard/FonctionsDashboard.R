@@ -770,6 +770,45 @@ create_barplot_card_server <- function(id, data_r, style = c("executive", "compa
   barplot_server(id = id, data_r = data_r, style = style, unit = unit)
 }
 
+
+create_lineplot_card <- function(
+    id,
+    data_r,
+    style = c("executive", "compact", "minimal"),
+    scale = 1.05,
+    unit = "%",
+    title = "Tendance annuelle",
+    subtitle = "Annuel",
+    size = NULL,
+    span = NULL
+) {
+  style <- match.arg(style)
+
+  defaults <- switch(
+    style,
+    executive = list(size = "normal", span = "span1"),
+    compact   = list(size = "small",  span = "span1"),
+    minimal   = list(size = "normal", span = "span2")
+  )
+
+  if (is.null(size)) size <- defaults$size
+  if (is.null(span)) span <- defaults$span
+
+  ui_card(
+    title = title,
+    subtitle = subtitle,
+    size = size,
+    span = span,
+    lineplot_ui(id),
+    scale = scale
+  )
+}
+
+create_lineplot_card_server <- function(id, data_r, style = c("executive", "compact", "minimal"), unit = "%") {
+  style <- match.arg(style)
+  lineplot_server(id = id, data_r = data_r, style = style, unit = unit)
+}
+
 create_groupbar_card <- function(
     id,
     data_r,
@@ -1133,6 +1172,149 @@ barplot_server <- function(id, data_r, style = c("executive", "compact", "minima
 
 
 
+
+
+
+lineplot_ui <- function(id) {
+  ns <- NS(id)
+  tags$div(
+    id = ns("container"),
+    class = "lineplot-container",
+    uiOutput(ns("lineplot"))
+  )
+}
+
+lineplot_css <- function(){
+  tags$style(HTML(" 
+    .lineplot-container{
+      width: 100%;
+      height: var(--svg-h);
+      min-height: 120px;
+    }
+
+    .line-axis {
+      stroke: rgba(18,55,97,0.2);
+      stroke-width: 1;
+    }
+
+    .line-trend {
+      fill: none;
+      stroke: #116AC4;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter: drop-shadow(0 3px 8px rgba(17,106,196,0.22));
+    }
+
+    .line-point {
+      fill: #ffffff;
+      stroke: #116AC4;
+      stroke-width: 2;
+      transition: transform 0.16s ease, fill 0.16s ease;
+    }
+
+    .line-point:hover {
+      fill: #116AC4;
+      transform: scale(1.08);
+    }
+
+    .line-value {
+      font-size: 12px;
+      font-weight: 600;
+      fill: #1f2d3d;
+      text-anchor: middle;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    .line-year {
+      font-size: 11px;
+      fill: #7a8ca3;
+      text-anchor: middle;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+  "))
+}
+
+lineplot_server <- function(id, data_r, style = c("executive", "compact", "minimal"), unit = "") {
+  style <- match.arg(style)
+
+  moduleServer(id, function(input, output, session) {
+    session$onFlushed(function() {
+      session$sendCustomMessage(
+        "measure_container",
+        list(id = session$ns("container"))
+      )
+    }, once = TRUE)
+
+    observeEvent(input$container_size, {
+      width  <- input$container_size$width
+      height <- input$container_size$height
+
+      if (is.null(width) || width < 20) return()
+
+      df <- data_r()
+      values <- df$value
+      labels <- df$year
+      n <- length(values)
+
+      max_val <- max(values, na.rm = TRUE)
+      min_val <- min(values, na.rm = TRUE)
+      range_val <- max(max_val - min_val, 1e-9)
+
+      margin_top <- height * 0.18
+      margin_bottom <- height * 0.20
+      margin_side <- width * 0.08
+
+      usable_h <- height - margin_top - margin_bottom
+      usable_w <- width - (margin_side * 2)
+
+      x_seq <- seq(margin_side, margin_side + usable_w, length.out = n)
+      y_seq <- height - margin_bottom - ((values - min_val) / range_val) * usable_h
+
+      line_points <- paste(sprintf('%.2f,%.2f', x_seq, y_seq), collapse = ' ')
+
+      output$lineplot <- renderUI({
+        tags$svg(
+          width = width,
+          height = height,
+          viewBox = paste0("0 0 ", width, " ", height),
+          preserveAspectRatio = "none",
+          tags$line(
+            x1 = margin_side,
+            y1 = height - margin_bottom,
+            x2 = width - margin_side,
+            y2 = height - margin_bottom,
+            class = "line-axis"
+          ),
+          tags$polyline(points = line_points, class = "line-trend"),
+          lapply(seq_len(n), function(i) {
+            tagList(
+              tags$circle(
+                cx = x_seq[i],
+                cy = y_seq[i],
+                r = if (style == "compact") 4 else 5,
+                class = "line-point",
+                tags$title(paste0(labels[i], " : ", round(values[i], 1), unit))
+              ),
+              tags$text(
+                x = x_seq[i],
+                y = y_seq[i] - height * 0.04,
+                class = "line-value",
+                paste0(round(values[i], 1), unit)
+              ),
+              tags$text(
+                x = x_seq[i],
+                y = height - height * 0.04,
+                class = "line-year",
+                labels[i]
+              )
+            )
+          })
+        )
+      })
+    })
+  })
+}
 
 #######################
 #Stacked Barplot

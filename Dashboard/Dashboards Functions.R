@@ -105,12 +105,14 @@ content_map <- list(
         size = "normal",
         span = "span1"
       ),
-      create_barplot_card(
-        id = "bar4",
+      create_lineplot_card(
+        id = "line1",
         data_r = NULL,
-        style = "compact",
+        style = "executive",
         scale = 1,
         unit = "",
+        title = "Tendance salariale",
+        subtitle = "Annuel",
         size = "normal",
         span = "span1"
       ),
@@ -147,6 +149,7 @@ ui <- fluidPage(
   useShinyjs(),
   copyCard(),
   barplot_css(),
+  lineplot_css(),
   ui_card_css(),
   container_size_js(),
   #stackedBar_css(),
@@ -211,10 +214,10 @@ server<-function(input, output, session) {
     style = "compact",
     unit = ""
   )
-  create_barplot_card_server(
-    id = "bar4",
+  create_lineplot_card_server(
+    id = "line1",
     data_r = bar_data,
-    style = "compact",
+    style = "executive",
     unit = ""
   )
   
