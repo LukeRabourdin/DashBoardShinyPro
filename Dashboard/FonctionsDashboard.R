@@ -1,6 +1,3 @@
-%||% <- function(x, y) if (is.null(x)) y else x
-
-
 relyens_chart_colors <- function(k) {
   base_colors <- c(
     "#0057B8", "#13A3E8", "#5A46B8",
@@ -755,8 +752,8 @@ create_barplot_card <- function(
     minimal   = list(size = "normal", span = "span2")
   )
 
-  size <- size %||% defaults$size
-  span <- span %||% defaults$span
+  if (is.null(size)) size <- defaults$size
+  if (is.null(span)) span <- defaults$span
 
   ui_card(
     title = title,
