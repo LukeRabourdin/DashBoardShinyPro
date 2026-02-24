@@ -767,7 +767,7 @@ ui_card_css <- function() {
     .ui-card.size-large  { --card-h: 440px; }
 
     .ui-card::before{
-      content:"";
+      content:'';
       position:absolute;
       top:0;
       left:0;
