@@ -17,10 +17,13 @@ design_tokens_css <- function() {
       --text-primary: #16263A;
       --text-secondary: #5D7088;
       --surface-glass: rgba(255, 255, 255, 0.72);
-      --surface-strong: rgba(255, 255, 255, 0.88);
+      --surface-strong: rgba(255, 255, 255, 0.9);
+      --surface-card: rgba(255, 255, 255, 0.78);
       --stroke-soft: rgba(255, 255, 255, 0.42);
+      --stroke-strong: rgba(18, 55, 97, 0.12);
       --shadow-soft: 0 10px 32px rgba(14, 42, 84, 0.10);
       --shadow-strong: 0 20px 44px rgba(14, 42, 84, 0.16);
+      --shadow-focus: 0 14px 30px rgba(0, 87, 184, 0.18);
     }
 
     body {
@@ -30,6 +33,7 @@ design_tokens_css <- function() {
         linear-gradient(180deg, #F7FAFF 0%, #EEF3FB 100%);
       color: var(--text-primary);
       font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      letter-spacing: 0.01em;
     }
   "))
 }
@@ -226,15 +230,18 @@ tabs_css <- function() {
     .tabs-bar {
       display: flex;
       gap: 8px;
-      padding: 12px 24px;
-      background: var(--surface-glass);
-      border-bottom: 1px solid var(--stroke-soft);
+      padding: 10px 24px;
+      background: var(--surface-card);
+      border: 1px solid var(--stroke-soft);
+      border-radius: 14px;
       backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-soft);
+      margin-bottom: 12px;
     }
 
     .tab-btn {
-      padding: 6px 14px;
-      border-radius: 999px;
+      padding: 8px 14px;
+      border-radius: 10px;
       border: none;
       background: transparent;
       font-size: 13px;
@@ -254,9 +261,10 @@ tabs_css <- function() {
     }
 
     .tab-btn.active {
-      background: rgba(0, 87, 184, 0.12);
+      background: linear-gradient(180deg, rgba(0,87,184,0.16), rgba(0,87,184,0.08));
       color: var(--brand-primary);
-      font-weight: 600;
+      font-weight: 700;
+      box-shadow: inset 0 0 0 1px rgba(0,87,184,0.16);
     }
     .tab-btn:focus {
       outline: none;
@@ -269,10 +277,10 @@ tabs_css <- function() {
       position: absolute;
       left: 20%;
       right: 20%;
-      bottom: -6px;
-      height: 3px;
+      bottom: -3px;
+      height: 2px;
       background: var(--brand-primary);
-      border-radius: 999px;
+      border-radius: 4px;
     }
 
     
@@ -386,7 +394,7 @@ search_bar_css <- function() {
     }
 
     .search-box {
-      width: 520px;
+      width: min(620px, 92vw);
       position: relative; /* reference pour le bouton */
     }
 
@@ -401,9 +409,10 @@ search_bar_css <- function() {
       font-weight: 500;
       color: #1f2d3d;
 
-      border-radius: 999px;
-      border: 1px solid #d0d7e2;
-      background-color: #ffffff;
+      border-radius: 14px;
+      border: 1px solid var(--stroke-strong);
+      background-color: var(--surface-strong);
+      backdrop-filter: blur(10px);
       outline: none;
 
       box-shadow: 0 1px 3px rgba(0,0,0,0.06);
@@ -684,9 +693,9 @@ ui_card_css <- function() {
   tags$style(HTML("
     .ui-card{
       /* base */
-      background: var(--surface-glass);
-      border: 1px solid var(--stroke-soft);
-      border-radius:20px;
+      background: var(--surface-card);
+      border: 1px solid var(--stroke-strong);
+      border-radius:16px;
       box-shadow: var(--shadow-soft);
       backdrop-filter: blur(12px) saturate(125%);
       position:relative;
@@ -763,7 +772,7 @@ ui_card_css <- function() {
       display:none;
       z-index:5;
     }
-    .ui-card:hover { box-shadow: var(--shadow-strong); transform: translateY(-2px); transition: transform 180ms ease, box-shadow 180ms ease; }
+    .ui-card:hover { box-shadow: var(--shadow-focus); transform: translateY(-3px); transition: transform 180ms ease, box-shadow 180ms ease; }
     .ui-card:hover .card-copy-btn{ display:block; }
     
     
@@ -1015,6 +1024,8 @@ stackedBar_html_css <- function() {
   flex: 1 1 auto;
   position: relative;
   display: flex;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.34), rgba(255,255,255,0.10));
   height: calc(
     var(--card-h)
     - (var(--card-pad) * 2)
@@ -1097,14 +1108,13 @@ stackedBar_html_css <- function() {
 
 
 .stack-seg:first-child{
-   border-bottom-left-radius:14px;
-  border-bottom-right-radius:14px;
+  border-bottom-left-radius:3px;
+  border-bottom-right-radius:3px;
 }
 
 .stack-seg:last-child{
- border-top-left-radius:14px;
-  border-top-right-radius:14px;
-
+  border-top-left-radius:6px;
+  border-top-right-radius:6px;
 }
 
 .stack-seg:hover{
@@ -1458,6 +1468,8 @@ groupBar_html_css <- function() {
   flex:1 1 auto;
   position:relative;
   display:flex;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.34), rgba(255,255,255,0.10));
   height:calc(
     var(--card-h)
     - (var(--card-pad) * 2)
@@ -1504,7 +1516,7 @@ groupBar_html_css <- function() {
 .group-bars{
   display:flex;
   align-items:flex-end;
-  gap:10px;
+  gap:8px;
   width:100%;
   height:100%;
   justify-content:center;
@@ -1516,8 +1528,9 @@ groupBar_html_css <- function() {
 
 .group-bar{
   position:relative;
-  width:18px;
-  border-radius:14px 14px 14px 14px;
+  width:14px;
+  border-radius:4px 4px 1px 1px;
+  border: 1px solid rgba(255,255,255,0.18);
   display:flex;
   align-items:flex-start;
   justify-content:center;
