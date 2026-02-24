@@ -80,7 +80,7 @@ content_map <- list(
       # Exemples du pipeline factory "R-like" : create_barplot_card(...)
       create_barplot_card(
         id = "bar1",
-        data_r = bar_data,
+        data_r = NULL,
         style = "executive",
         scale = 1.05,
         unit = "",
@@ -89,7 +89,7 @@ content_map <- list(
       ),
       create_barplot_card(
         id = "bar2",
-        data_r = bar_data,
+        data_r = NULL,
         style = "executive",
         scale = 1.1,
         unit = "",
@@ -98,7 +98,7 @@ content_map <- list(
       ),
       create_barplot_card(
         id = "bar3",
-        data_r = bar_data,
+        data_r = NULL,
         style = "compact",
         scale = 1,
         unit = "",
@@ -107,15 +107,27 @@ content_map <- list(
       ),
       create_barplot_card(
         id = "bar4",
-        data_r = bar_data,
+        data_r = NULL,
         style = "compact",
         scale = 1,
         unit = "",
         size = "normal",
         span = "span1"
       ),
-      ui_card(title = "Masse salariale",subtitle = "Annuel",size = "large",span = "span2", groupBar_ui("BarplotGrouped1")),
-      ui_card(title = "Masse salariale",subtitle = "Annuel",size = "large",span = "span2", stackedBar_ui ("BarplotStacked1")),
+      create_groupbar_card(
+        id = "BarplotGrouped1",
+        data_r = NULL,
+        style = "executive",
+        scale = 1.03,
+        unit = "%"
+      ),
+      create_stackedbar_card(
+        id = "BarplotStacked1",
+        data_r = NULL,
+        style = "executive",
+        scale = 1.03,
+        unit = "%"
+      ),
 
     )
   },
@@ -217,8 +229,18 @@ server<-function(input, output, session) {
   })
   
   
-  stackedBar_server("BarplotStacked1",stack_data,unit = "%")
-  groupBar_server("BarplotGrouped1",stack_data,unit = "%")
+  create_stackedbar_card_server(
+    id = "BarplotStacked1",
+    data_r = stack_data,
+    style = "executive",
+    unit = "%"
+  )
+  create_groupbar_card_server(
+    id = "BarplotGrouped1",
+    data_r = stack_data,
+    style = "executive",
+    unit = "%"
+  )
 
 }
 

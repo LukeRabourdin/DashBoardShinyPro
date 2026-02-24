@@ -770,6 +770,82 @@ create_barplot_card_server <- function(id, data_r, style = c("executive", "compa
   barplot_server(id = id, data_r = data_r, style = style, unit = unit)
 }
 
+create_groupbar_card <- function(
+    id,
+    data_r,
+    style = c("executive", "compact", "minimal"),
+    scale = 1.05,
+    unit = "%",
+    title = "Masse salariale",
+    subtitle = "Annuel",
+    size = NULL,
+    span = NULL
+) {
+  style <- match.arg(style)
+
+  defaults <- switch(
+    style,
+    executive = list(size = "large", span = "span2"),
+    compact   = list(size = "normal", span = "span2"),
+    minimal   = list(size = "normal", span = "span1")
+  )
+
+  if (is.null(size)) size <- defaults$size
+  if (is.null(span)) span <- defaults$span
+
+  ui_card(
+    title = title,
+    subtitle = subtitle,
+    size = size,
+    span = span,
+    groupBar_ui(id),
+    scale = scale
+  )
+}
+
+create_groupbar_card_server <- function(id, data_r, style = c("executive", "compact", "minimal"), unit = "%") {
+  style <- match.arg(style)
+  groupBar_server(id = id, data_r = data_r, unit = unit)
+}
+
+create_stackedbar_card <- function(
+    id,
+    data_r,
+    style = c("executive", "compact", "minimal"),
+    scale = 1.05,
+    unit = "%",
+    title = "Masse salariale",
+    subtitle = "Annuel",
+    size = NULL,
+    span = NULL
+) {
+  style <- match.arg(style)
+
+  defaults <- switch(
+    style,
+    executive = list(size = "large", span = "span2"),
+    compact   = list(size = "normal", span = "span2"),
+    minimal   = list(size = "normal", span = "span1")
+  )
+
+  if (is.null(size)) size <- defaults$size
+  if (is.null(span)) span <- defaults$span
+
+  ui_card(
+    title = title,
+    subtitle = subtitle,
+    size = size,
+    span = span,
+    stackedBar_ui(id),
+    scale = scale
+  )
+}
+
+create_stackedbar_card_server <- function(id, data_r, style = c("executive", "compact", "minimal"), unit = "%") {
+  style <- match.arg(style)
+  stackedBar_server(id = id, data_r = data_r, unit = unit)
+}
+
 
 
 
@@ -1881,4 +1957,3 @@ groupBar_js <- function(id, df, unit){
     "
     )))
 }
-
