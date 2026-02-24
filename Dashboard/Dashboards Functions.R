@@ -77,10 +77,43 @@ content_map <- list(
   
   "Vue générale" = function() {
     ui_dashboard_grid(
-      ui_card(title = "Masse salariale",subtitle = "Annuel",size = "normal",span = "span1", barplot_ui("bar1")),
-      ui_card(title = "Masse salariale",subtitle = "Annuel",size = "normal",span = "span2", barplot_ui("bar2")),
-      ui_card(title = "Masse salariale",subtitle = "Annuel",size = "normal",span = "span1", barplot_ui("bar3")),
-      ui_card(title = "Masse salariale",subtitle = "Annuel",size = "normal",span = "span1", barplot_ui("bar4")),
+      # Exemples du pipeline factory "R-like" : create_barplot_card(...)
+      create_barplot_card(
+        id = "bar1",
+        data_r = bar_data,
+        style = "executive",
+        scale = 1.05,
+        unit = "",
+        size = "normal",
+        span = "span1"
+      ),
+      create_barplot_card(
+        id = "bar2",
+        data_r = bar_data,
+        style = "executive",
+        scale = 1.1,
+        unit = "",
+        size = "normal",
+        span = "span2"
+      ),
+      create_barplot_card(
+        id = "bar3",
+        data_r = bar_data,
+        style = "compact",
+        scale = 1,
+        unit = "",
+        size = "normal",
+        span = "span1"
+      ),
+      create_barplot_card(
+        id = "bar4",
+        data_r = bar_data,
+        style = "compact",
+        scale = 1,
+        unit = "",
+        size = "normal",
+        span = "span1"
+      ),
       ui_card(title = "Masse salariale",subtitle = "Annuel",size = "large",span = "span2", groupBar_ui("BarplotGrouped1")),
       ui_card(title = "Masse salariale",subtitle = "Annuel",size = "large",span = "span2", stackedBar_ui ("BarplotStacked1")),
 
@@ -147,25 +180,30 @@ server<-function(input, output, session) {
     )
   })
   
-  barplot_server(
+  # Serveur associé aux cartes factory
+  create_barplot_card_server(
     id = "bar1",
-    data_r = bar_data
+    data_r = bar_data,
+    style = "executive",
+    unit = ""
   )
-  barplot_server(
+  create_barplot_card_server(
     id = "bar2",
-    data_r = bar_data
+    data_r = bar_data,
+    style = "executive",
+    unit = ""
   )
-  barplot_server(
+  create_barplot_card_server(
     id = "bar3",
-    data_r = bar_data
+    data_r = bar_data,
+    style = "compact",
+    unit = ""
   )
-  barplot_server(
+  create_barplot_card_server(
     id = "bar4",
-    data_r = bar_data
-  )
-  barplot_server(
-    id = "bar5",
-    data_r = bar_data
+    data_r = bar_data,
+    style = "compact",
+    unit = ""
   )
   
   
