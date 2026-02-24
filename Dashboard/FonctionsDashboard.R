@@ -653,7 +653,16 @@ search_bar_js <- function(id) {
 
 card_size_tokens <- function(size = c("small", "normal", "large"), scale = 1) {
   size <- match.arg(size)
-  scale <- max(0.7, as.numeric(scale))
+
+  if (is.list(scale)) {
+    scale <- unlist(scale, recursive = TRUE, use.names = FALSE)
+  }
+
+  scale_num <- suppressWarnings(as.numeric(scale)[1])
+  if (is.na(scale_num) || !is.finite(scale_num)) {
+    scale_num <- 1
+  }
+  scale_num <- max(0.7, scale_num)
 
   base_height <- switch(
     size,
@@ -670,8 +679,8 @@ card_size_tokens <- function(size = c("small", "normal", "large"), scale = 1) {
   )
 
   list(
-    card_h = round(base_height * scale),
-    card_pad = round(base_pad * min(scale, 1.15))
+    card_h = round(base_height * scale_num),
+    card_pad = round(base_pad * min(scale_num, 1.15))
   )
 }
 
