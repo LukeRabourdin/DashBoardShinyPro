@@ -1,3 +1,5 @@
+%||% <- function(x, y) if (is.null(x)) y else x
+
 
 relyens_chart_colors <- function(k) {
   base_colors <- c(
@@ -733,6 +735,45 @@ ui_card <- function(
 }
 
 
+create_barplot_card <- function(
+    id,
+    data_r,
+    style = c("executive", "compact", "minimal"),
+    scale = 1.1,
+    unit = "%",
+    title = "Masse salariale",
+    subtitle = "Annuel",
+    size = NULL,
+    span = NULL
+) {
+  style <- match.arg(style)
+
+  defaults <- switch(
+    style,
+    executive = list(size = "normal", span = "span1"),
+    compact   = list(size = "small",  span = "span1"),
+    minimal   = list(size = "normal", span = "span2")
+  )
+
+  size <- size %||% defaults$size
+  span <- span %||% defaults$span
+
+  ui_card(
+    title = title,
+    subtitle = subtitle,
+    size = size,
+    span = span,
+    barplot_ui(id),
+    scale = scale
+  )
+}
+
+create_barplot_card_server <- function(id, data_r, style = c("executive", "compact", "minimal"), unit = "%") {
+  style <- match.arg(style)
+  barplot_server(id = id, data_r = data_r, style = style, unit = unit)
+}
+
+
 
 
 ui_card_css <- function() {
@@ -889,13 +930,13 @@ barplot_css <- function(){
     }
 
     .dribble-label {
-      font-size: 12px;
-      font-weight: 600;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
       fill: #1f2d3d;
       text-anchor: middle;
       dominant-baseline: middle;
-      transform-box: fill-box;
-      transform-origin: center;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
     
     .dribble-year {
@@ -903,13 +944,14 @@ barplot_css <- function(){
       fill: #7a8ca3;
       text-anchor: middle;
       dominant-baseline: middle;
-      transform-box: fill-box;
-      transform-origin: center;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
   "))
 }
 
-barplot_server <- function(id, data_r) {
+barplot_server <- function(id, data_r, style = c("executive", "compact", "minimal"), unit = "") {
+  style <- match.arg(style)
+
   moduleServer(id, function(input, output, session) {
 
     # envoyer le ns correct au JS
@@ -957,14 +999,14 @@ barplot_server <- function(id, data_r) {
           tags$rect(
             x = x, y = y,
             width = bar_width, height = bar_height,
-            rx = min(bar_width/2, 12),
+            rx = if (style == "executive") min(bar_width * 0.18, 6) else min(bar_width/2, 12),
             class = "dribble-bar"
           ),
           tags$text(
             x = x + bar_width/2,
             y = y - height*0.04,
             class = "dribble-label",
-            round(values[i],1)
+            paste0(round(values[i],1), unit)
           ),
           tags$text(
             x = x + bar_width/2,
@@ -1790,7 +1832,6 @@ groupBar_js <- function(id, df, unit){
           const index = Number(this.dataset.index) - 1;
           const row = data[index];
 
-          let total = 0;
           let html = `<div class='tooltip-title'>${row.year}</div>`;
 
           Object.keys(row).forEach(k => {
@@ -1798,22 +1839,23 @@ groupBar_js <- function(id, df, unit){
             if(k === 'year') return;
 
             const v = Number(row[k] || 0);
-            total += v;
 
             html += `
               <div class='tooltip-line'>
-                <span>${k}</span>
+                <span style='display:flex;align-items:center;gap:6px;'>
+                  <span style='
+                    width:8px;
+                    height:8px;
+                    border-radius:50%;
+                    background:${getColor(index, k)};
+                    display:inline-block;
+                  '></span>
+                  ${k}
+                </span>
                 <span>${v}${unit}</span>
               </div>
             `;
           });
-
-          html += `
-            <div class='tooltip-line'>
-              <strong>Total</strong>
-              <strong>${total}${unit}</strong>
-            </div>
-          `;
 
           tooltip.innerHTML = html;
           tooltip.style.display = 'block';
@@ -1830,6 +1872,13 @@ groupBar_js <- function(id, df, unit){
         });
 
       });
+
+      function getColor(rowIndex, colName){
+        const bar = graph.querySelector(
+          `.group-bar[data-index='${rowIndex+1}'][data-col='${colName}']`
+        );
+        return bar ? getComputedStyle(bar).backgroundColor : '#999';
+      }
 
     })();
     "
