@@ -689,9 +689,10 @@ ui_card <- function(
     subtitle = NULL,
     size = c("small", "normal", "large"),
     span = c("span1", "span2", "span3", "spanfull"),
-    scale = 1,
-    ...
+    ...,
+    scale = 1
 ) {
+  # `scale` is kept after `...` so unnamed plot UI args still map to `...`
   size <- match.arg(size)
   span <- match.arg(span)
   
