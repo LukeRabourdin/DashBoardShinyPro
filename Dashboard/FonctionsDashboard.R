@@ -1193,8 +1193,29 @@ lineplot_css <- function(){
     }
 
     .line-axis {
-      stroke: rgba(18,55,97,0.2);
+      stroke: rgba(18,55,97,0.18);
       stroke-width: 1;
+    }
+
+    .line-grid {
+      stroke: rgba(18,55,97,0.10);
+      stroke-width: 1;
+      stroke-dasharray: 3 5;
+    }
+
+    .line-area {
+      fill: url(#lineAreaGradient);
+      opacity: 0.9;
+    }
+
+    .line-trend-shadow {
+      fill: none;
+      stroke: rgba(17,106,196,0.40);
+      stroke-width: 9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter: url(#lineGlow);
+      opacity: 0.75;
     }
 
     .line-trend {
@@ -1203,19 +1224,18 @@ lineplot_css <- function(){
       stroke-width: 3;
       stroke-linecap: round;
       stroke-linejoin: round;
-      filter: drop-shadow(0 3px 8px rgba(17,106,196,0.22));
     }
 
     .line-point {
       fill: #ffffff;
       stroke: #116AC4;
       stroke-width: 2;
-      transition: transform 0.16s ease, fill 0.16s ease;
+      transition: fill 0.12s ease, stroke-width 0.12s ease;
     }
 
     .line-point:hover {
       fill: #116AC4;
-      transform: scale(1.08);
+      stroke-width: 2.5;
     }
 
     .line-value {
@@ -1224,6 +1244,10 @@ lineplot_css <- function(){
       fill: #1f2d3d;
       text-anchor: middle;
       font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      paint-order: stroke;
+      stroke: rgba(255,255,255,0.85);
+      stroke-width: 2px;
+      stroke-linejoin: round;
     }
 
     .line-year {
@@ -1272,6 +1296,11 @@ lineplot_server <- function(id, data_r, style = c("executive", "compact", "minim
       y_seq <- height - margin_bottom - ((values - min_val) / range_val) * usable_h
 
       line_points <- paste(sprintf('%.2f,%.2f', x_seq, y_seq), collapse = ' ')
+      area_points <- paste0(
+        sprintf('%.2f,%.2f', x_seq[1], height - margin_bottom), ' ',
+        line_points, ' ',
+        sprintf('%.2f,%.2f', x_seq[n], height - margin_bottom)
+      )
 
       output$lineplot <- renderUI({
         tags$svg(
@@ -1279,6 +1308,23 @@ lineplot_server <- function(id, data_r, style = c("executive", "compact", "minim
           height = height,
           viewBox = paste0("0 0 ", width, " ", height),
           preserveAspectRatio = "none",
+          tags$defs(
+            tags$linearGradient(
+              id = "lineAreaGradient",
+              x1 = "0%", y1 = "0%", x2 = "0%", y2 = "100%",
+              tags$stop(offset = "0%", `stop-color` = "rgba(46,183,243,0.36)"),
+              tags$stop(offset = "100%", `stop-color` = "rgba(46,183,243,0.00)")
+            ),
+            tags$filter(
+              id = "lineGlow",
+              x = "-20%", y = "-20%", width = "140%", height = "140%",
+              tags$feGaussianBlur(stdDeviation = "3", result = "blur"),
+              tags$feMerge(
+                tags$feMergeNode(in = "blur"),
+                tags$feMergeNode(in = "SourceGraphic")
+              )
+            )
+          ),
           tags$line(
             x1 = margin_side,
             y1 = height - margin_bottom,
@@ -1286,6 +1332,22 @@ lineplot_server <- function(id, data_r, style = c("executive", "compact", "minim
             y2 = height - margin_bottom,
             class = "line-axis"
           ),
+          tags$line(
+            x1 = margin_side,
+            y1 = height - margin_bottom - (usable_h * 0.5),
+            x2 = width - margin_side,
+            y2 = height - margin_bottom - (usable_h * 0.5),
+            class = "line-grid"
+          ),
+          tags$line(
+            x1 = margin_side,
+            y1 = height - margin_bottom - usable_h,
+            x2 = width - margin_side,
+            y2 = height - margin_bottom - usable_h,
+            class = "line-grid"
+          ),
+          tags$polygon(points = area_points, class = "line-area"),
+          tags$polyline(points = line_points, class = "line-trend-shadow"),
           tags$polyline(points = line_points, class = "line-trend"),
           lapply(seq_len(n), function(i) {
             tagList(
