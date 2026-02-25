@@ -231,7 +231,7 @@ tabs_css <- function() {
   tags$style(HTML("
     .tabs-bar {
       display: flex;
-      gap: 8px;
+      gap: 12px;
       padding: 10px 24px;
       background: var(--surface-card);
       border: 1px solid var(--stroke-soft);
@@ -1493,7 +1493,7 @@ multilineplot_css <- function(){
     .multiline-legend-item {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
       margin-right: 8px;
       color: #5f7490;
       font-size: 11px;
