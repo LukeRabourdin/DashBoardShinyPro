@@ -2361,29 +2361,52 @@ france_map_kpi_server <- function(id, data_r) {
         map_ops$zone[nb_mask] <- "Limitrophes"
         map_ops$zone[map_ops$code == target] <- "Cible"
 
-        base_col <- rep("#E2E8F0", nrow(map_ops))
-        base_col[map_ops$zone == "Limitrophes"] <- "#D1D9E8"
-        base_col[map_ops$zone == "Cible"] <- "#CFE2FF"
+        focus_sf <- map_ops[map_ops$zone %in% c("Cible", "Limitrophes"), ]
+        if (nrow(focus_sf) == 0) {
+          focus_sf <- target_ops
+        }
+
+        bb <- sf::st_bbox(focus_sf)
+        xspan <- max(1, as.numeric(bb["xmax"] - bb["xmin"]))
+        yspan <- max(1, as.numeric(bb["ymax"] - bb["ymin"]))
+        pad_x <- xspan * 0.8
+        pad_y <- yspan * 0.8
+
+        view_bb <- sf::st_bbox(c(
+          xmin = bb["xmin"] - pad_x,
+          ymin = bb["ymin"] - pad_y,
+          xmax = bb["xmax"] + pad_x,
+          ymax = bb["ymax"] + pad_y
+        ), crs = sf::st_crs(map_ops))
+
+        map_view <- suppressWarnings(sf::st_crop(map_ops, view_bb))
+        if (nrow(map_view) == 0) {
+          map_view <- map_ops
+        }
+
+        base_col <- rep("#E2E8F0", nrow(map_view))
+        base_col[map_view$zone == "Limitrophes"] <- "#D1D9E8"
+        base_col[map_view$zone == "Cible"] <- "#CFE2FF"
 
         val_range <- range(vals$value, na.rm = TRUE)
         has_vals <- all(is.finite(val_range))
         pal <- grDevices::colorRampPalette(c("#CFE2FF", "#13A3E8", "#0057B8"))(100)
         idx <- if (has_vals) {
-          pmax(1, pmin(100, round((map_ops$value - val_range[1]) / max(1e-9, diff(val_range)) * 99) + 1))
+          pmax(1, pmin(100, round((map_view$value - val_range[1]) / max(1e-9, diff(val_range)) * 99) + 1))
         } else {
-          rep(1, nrow(map_ops))
+          rep(1, nrow(map_view))
         }
 
         fill_col <- base_col
-        mask <- map_ops$zone %in% c("Cible", "Limitrophes") & !is.na(map_ops$value)
+        mask <- map_view$zone %in% c("Cible", "Limitrophes") & !is.na(map_view$value)
         fill_col[mask] <- pal[idx[mask]]
 
         par(mar = c(0, 0, 0, 0), xaxs = "i", yaxs = "i")
-        plot(sf::st_geometry(map_ops), col = fill_col, border = "#FFFFFF", lwd = 0.6)
+        plot(sf::st_geometry(map_view), col = fill_col, border = "#FFFFFF", lwd = 0.6)
         plot(sf::st_geometry(target_ops), add = TRUE, border = "#FF3B30", lwd = 1.8)
 
         target_cent <- sf::st_coordinates(sf::st_point_on_surface(sf::st_geometry(target_ops)))[1, ]
-        target_val <- map_ops$value[map_ops$code == target][1]
+        target_val <- map_view$value[map_view$code == target][1]
         lbl <- if (is.finite(target_val)) paste0(target, "\n", sprintf("%.2f%%", target_val)) else paste0(target, "\nNA")
         text(target_cent[1], target_cent[2], labels = lbl, cex = 0.85, font = 2, col = "#102A43")
       },
