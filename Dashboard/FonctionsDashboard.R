@@ -1500,30 +1500,48 @@ special_kpi_css <- function() {
     .special-kpi-wrap {
       width: 100%;
       height: 100%;
+      min-height: 0;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 18px;
+      justify-content: flex-start;
+      overflow: auto;
+      padding-right: 2px;
+      box-sizing: border-box;
     }
 
     .special-kpi-panel {
+      width: 100%;
+      max-width: 100%;
       border: 1px solid rgba(185, 198, 214, 0.55);
       border-radius: 12px;
       background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.38));
       overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .special-kpi-panel + .special-kpi-panel {
+      margin-top: 2px;
     }
 
     .special-kpi-panel table {
       width: 100%;
+      max-width: 100%;
+      table-layout: fixed;
       border-collapse: collapse;
       font-size: 11px;
       color: #263c56;
+      margin: 0 auto;
     }
 
     .special-kpi-panel th,
     .special-kpi-panel td {
-      padding: 7px 10px;
+      padding: 7px 8px;
       border-bottom: 1px solid rgba(185, 198, 214, 0.35);
       vertical-align: middle;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .special-kpi-panel tr:last-child td { border-bottom: none; }
@@ -1540,7 +1558,8 @@ special_kpi_css <- function() {
       text-align: left;
       font-weight: 500;
       color: #1f334d;
-      min-width: 120px;
+      width: 22%;
+      min-width: 0;
     }
 
     .special-kpi-panel tbody td { text-align: right; }
