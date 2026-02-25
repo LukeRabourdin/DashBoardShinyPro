@@ -1518,13 +1518,13 @@ multilineplot_css <- function(){
     }
 
     .multiline-legend-item {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       gap: 6px;
-      color: #5c6f85;
       font-size: 11px;
-      font-weight: 500;
-      line-height: 1;
+      color: #5c6f85;
+      font-weight: 400;
+      line-height: 1.2;
     }
 
     .multiline-legend-dot {
@@ -1532,6 +1532,8 @@ multilineplot_css <- function(){
       height: 8px;
       border-radius: 50%;
       display: inline-block;
+      flex-shrink: 0;
+      margin-right: 6px;
       box-shadow: 0 0 0 1px rgba(255,255,255,0.70);
     }
 
