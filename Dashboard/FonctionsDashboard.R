@@ -2422,8 +2422,8 @@ france_map_kpi_server <- function(id, data_r) {
         if (!is.null(bb) && all(is.finite(as.numeric(bb)))) {
           xspan <- max(1, as.numeric(bb["xmax"] - bb["xmin"]))
           yspan <- max(1, as.numeric(bb["ymax"] - bb["ymin"]))
-          pad_x <- xspan * 0.45
-          pad_y <- yspan * 0.45
+          pad_x <- xspan * 0.22
+          pad_y <- yspan * 0.22
 
           view_bb <- c(
             xmin = as.numeric(bb["xmin"] - pad_x),
@@ -2456,7 +2456,7 @@ france_map_kpi_server <- function(id, data_r) {
         fill_col[mask] <- pal[idx[mask]]
 
         par(mar = c(0, 0, 0, 0), xaxs = "i", yaxs = "i")
-        plot(sf::st_geometry(map_view), col = fill_col, border = "#FFFFFF", lwd = 0.6)
+        plot(sf::st_geometry(map_view), col = fill_col, border = "#FFFFFF", lwd = 0.6, asp = NA)
         plot(sf::st_geometry(target_ops), add = TRUE, border = "#5A46B8", lwd = 2.1)
 
         label_df <- map_ops[map_ops$zone %in% c("Cible", "Limitrophes") & is.finite(map_ops$value), ]
