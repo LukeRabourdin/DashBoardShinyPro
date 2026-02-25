@@ -1824,30 +1824,20 @@ binary_kpi_css <- function() {
     }
 
     .binary-kpi-cell.value-1 {
-      background: linear-gradient(135deg, #62C95A, #7DDB67);
-      border-color: rgba(69, 154, 77, 0.72);
-      box-shadow: 0 6px 16px rgba(78, 173, 92, 0.22);
+      background: linear-gradient(135deg, #00B894, #2ED8B6);
+      border-color: rgba(0, 136, 109, 0.74);
+      box-shadow: 0 6px 16px rgba(0, 184, 148, 0.22);
     }
 
     .binary-kpi-cell.value-0 {
-      background: linear-gradient(135deg, #D3481A, #EC5B28);
-      border-color: rgba(162, 53, 18, 0.75);
-      box-shadow: 0 6px 16px rgba(211, 72, 26, 0.20);
+      background: linear-gradient(135deg, #5A46B8, #7A68D1);
+      border-color: rgba(73, 57, 156, 0.78);
+      box-shadow: 0 6px 16px rgba(90, 70, 184, 0.22);
     }
 
     .binary-kpi-cell:hover {
       transform: translateY(-1px);
       filter: saturate(1.03);
-    }
-
-    .binary-kpi-cell span {
-      position: relative;
-      z-index: 2;
-      color: #ffffff;
-      font-weight: 700;
-      font-size: 10px;
-      letter-spacing: 0.03em;
-      text-shadow: 0 1px 1px rgba(0,0,0,0.20);
     }
 
     @keyframes binaryCellPop {
@@ -1880,8 +1870,7 @@ binary_kpi_server <- function(id, data_r) {
             tags$td(
               tags$div(
                 class = paste("binary-kpi-cell", paste0("value-", v)),
-                style = paste0("--cell-delay:", (i * 40 + j * 30), "ms;"),
-                tags$span(v)
+                style = paste0("--cell-delay:", (i * 40 + j * 30), "ms;")
               )
             )
           })
