@@ -2344,18 +2344,28 @@ france_map_kpi_server <- function(id, data_r) {
 
         map_df <- merge(shp, vals, by = "code", all.x = TRUE)
         map_df <- normalize_geometries(map_df)
-        target <- as.character(d$dept_code)[1]
 
+        non_empty <- tryCatch(!sf::st_is_empty(map_df), error = function(e) rep(TRUE, nrow(map_df)))
+        map_df <- map_df[non_empty, ]
+
+        target <- as.character(d$dept_code)[1]
         target_sf <- map_df[map_df$code == target, ]
         validate(need(nrow(target_sf) == 1, paste0("Département cible introuvable: ", target)))
 
         map_ops <- map_df
-        if (isTRUE(sf::st_is_longlat(map_ops))) {
-          map_ops <- sf::st_transform(map_ops, 2154)
+        is_longlat <- tryCatch(isTRUE(sf::st_is_longlat(map_ops)), error = function(e) FALSE)
+        if (is_longlat) {
+          map_ops <- tryCatch(sf::st_transform(map_ops, 2154), error = function(e) map_ops)
         }
 
         target_ops <- map_ops[map_ops$code == target, ]
-        nb_mask <- lengths(sf::st_touches(map_ops, target_ops, sparse = TRUE)) > 0
+        validate(need(nrow(target_ops) == 1, paste0("Département cible introuvable après projection: ", target)))
+
+        nb_mask <- tryCatch({
+          lengths(sf::st_touches(map_ops, target_ops, sparse = TRUE)) > 0
+        }, error = function(e) {
+          rep(FALSE, nrow(map_ops))
+        })
 
         map_ops$zone <- "Autres"
         map_ops$zone[nb_mask] <- "Limitrophes"
@@ -2366,22 +2376,25 @@ france_map_kpi_server <- function(id, data_r) {
           focus_sf <- target_ops
         }
 
-        bb <- sf::st_bbox(focus_sf)
-        xspan <- max(1, as.numeric(bb["xmax"] - bb["xmin"]))
-        yspan <- max(1, as.numeric(bb["ymax"] - bb["ymin"]))
-        pad_x <- xspan * 0.8
-        pad_y <- yspan * 0.8
+        map_view <- map_ops
+        bb <- tryCatch(sf::st_bbox(focus_sf), error = function(e) NULL)
+        if (!is.null(bb) && all(is.finite(as.numeric(bb)))) {
+          xspan <- max(1, as.numeric(bb["xmax"] - bb["xmin"]))
+          yspan <- max(1, as.numeric(bb["ymax"] - bb["ymin"]))
+          pad_x <- xspan * 0.8
+          pad_y <- yspan * 0.8
 
-        view_bb <- sf::st_bbox(c(
-          xmin = bb["xmin"] - pad_x,
-          ymin = bb["ymin"] - pad_y,
-          xmax = bb["xmax"] + pad_x,
-          ymax = bb["ymax"] + pad_y
-        ), crs = sf::st_crs(map_ops))
+          view_bb <- c(
+            xmin = as.numeric(bb["xmin"] - pad_x),
+            ymin = as.numeric(bb["ymin"] - pad_y),
+            xmax = as.numeric(bb["xmax"] + pad_x),
+            ymax = as.numeric(bb["ymax"] + pad_y)
+          )
 
-        map_view <- suppressWarnings(sf::st_crop(map_ops, view_bb))
-        if (nrow(map_view) == 0) {
-          map_view <- map_ops
+          cropped <- tryCatch(suppressWarnings(sf::st_crop(map_ops, view_bb)), error = function(e) map_ops)
+          if (nrow(cropped) > 0) {
+            map_view <- cropped
+          }
         }
 
         base_col <- rep("#E2E8F0", nrow(map_view))
@@ -2405,8 +2418,14 @@ france_map_kpi_server <- function(id, data_r) {
         plot(sf::st_geometry(map_view), col = fill_col, border = "#FFFFFF", lwd = 0.6)
         plot(sf::st_geometry(target_ops), add = TRUE, border = "#FF3B30", lwd = 1.8)
 
-        target_cent <- sf::st_coordinates(sf::st_point_on_surface(sf::st_geometry(target_ops)))[1, ]
-        target_val <- map_view$value[map_view$code == target][1]
+        target_cent <- tryCatch({
+          sf::st_coordinates(sf::st_point_on_surface(sf::st_geometry(target_ops)))[1, ]
+        }, error = function(e) {
+          bb_target <- sf::st_bbox(target_ops)
+          c((bb_target["xmin"] + bb_target["xmax"]) / 2, (bb_target["ymin"] + bb_target["ymax"]) / 2)
+        })
+
+        target_val <- map_ops$value[map_ops$code == target][1]
         lbl <- if (is.finite(target_val)) paste0(target, "\n", sprintf("%.2f%%", target_val)) else paste0(target, "\nNA")
         text(target_cent[1], target_cent[2], labels = lbl, cex = 0.85, font = 2, col = "#102A43")
       },
