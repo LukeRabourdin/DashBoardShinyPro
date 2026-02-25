@@ -1453,6 +1453,7 @@ multilineplot_ui <- function(id) {
 
   tags$div(
     class = "multilineplot-shell",
+    tags$div(class = "multiline-legend-caption", "Légende"),
     tags$div(id = ns("legend"), class = "multiline-legend"),
     tags$div(
       id = ns("container"),
@@ -1472,6 +1473,15 @@ multilineplot_css <- function(){
       display: flex;
       flex-direction: column;
       gap: 10px;
+    }
+
+    .multiline-legend-caption {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #6d8199;
+      margin-bottom: -4px;
     }
 
     .multiline-legend {
@@ -1580,6 +1590,15 @@ multilineplot_css <- function(){
       animation: multiLineDraw 950ms cubic-bezier(.2,.8,.2,1) forwards;
       stroke-dasharray: 1400;
       stroke-dashoffset: 1400;
+    }
+
+    .multiline-line-hit {
+      fill: none;
+      stroke: transparent;
+      stroke-width: 14;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      cursor: pointer;
     }
 
     .multiline-point {
@@ -1702,27 +1721,52 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
   var tooltip = document.getElementById('%s');
   if (!container || !tooltip) return;
 
-  container.querySelectorAll('.multiline-point').forEach(function(pt){
-    pt.addEventListener('mouseenter', function(){
-      var color = pt.getAttribute('data-color') || '#116AC4';
-      var series = pt.getAttribute('data-series') || '';
-      var year = pt.getAttribute('data-year') || '';
-      var value = pt.getAttribute('data-value') || '';
+  function setTooltipContent(color, title, valueText){
+    var valueHtml = valueText ? ('<div class=\"multiline-tooltip-value\">' + valueText + '</div>') : '';
+    tooltip.innerHTML = '<div class=\"multiline-tooltip-title\"><span class=\"multiline-tooltip-dot\" style=\"background:' + color + ';\"></span>' + title + '</div>' + valueHtml;
+  }
 
-      tooltip.innerHTML = '<div class=\"multiline-tooltip-title\"><span class=\"multiline-tooltip-dot\" style=\"background:' + color + ';\"></span>' + series + ' · ' + year + '</div>' +
-                        '<div class=\"multiline-tooltip-value\">Valeur : ' + value + '</div>';
-      tooltip.style.display = 'block';
-    });
+  function moveTooltip(ev){
+    var r = container.getBoundingClientRect();
+    tooltip.style.left = (ev.clientX - r.left) + 'px';
+    tooltip.style.top = (ev.clientY - r.top) + 'px';
+  }
 
-    pt.addEventListener('mousemove', function(ev){
-      var r = container.getBoundingClientRect();
-      tooltip.style.left = (ev.clientX - r.left) + 'px';
-      tooltip.style.top = (ev.clientY - r.top) + 'px';
+  function bindHover(nodes, build){
+    nodes.forEach(function(node){
+      node.addEventListener('mouseenter', function(ev){
+        var info = build(node);
+        setTooltipContent(info.color, info.title, info.valueText);
+        tooltip.style.display = 'block';
+        moveTooltip(ev);
+      });
+      node.addEventListener('mousemove', moveTooltip);
+      node.addEventListener('mouseleave', function(){
+        tooltip.style.display = 'none';
+      });
     });
+  }
 
-    pt.addEventListener('mouseleave', function(){
-      tooltip.style.display = 'none';
-    });
+  bindHover(container.querySelectorAll('.multiline-point'), function(pt){
+    var color = pt.getAttribute('data-color') || '#116AC4';
+    var series = pt.getAttribute('data-series') || '';
+    var year = pt.getAttribute('data-year') || '';
+    var value = pt.getAttribute('data-value') || '';
+    return {
+      color: color,
+      title: series + ' · ' + year,
+      valueText: 'Valeur : ' + value
+    };
+  });
+
+  bindHover(container.querySelectorAll('.multiline-line-hit'), function(line){
+    var color = line.getAttribute('data-color') || '#116AC4';
+    var series = line.getAttribute('data-series') || '';
+    return {
+      color: color,
+      title: series,
+      valueText: 'Série'
+    };
   });
 })();", session$ns("container"), session$ns("tooltip"))
 
@@ -1760,6 +1804,12 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
               tagList(
                 tags$polyline(points = points, class = "multiline-track", style = paste0("stroke:", colors[i], ";")),
                 tags$polyline(points = points, class = "multiline-line", style = paste0("stroke:", colors[i], ";")),
+                tags$polyline(
+                  points = points,
+                  class = "multiline-line-hit",
+                  `data-series` = series_names[i],
+                  `data-color` = colors[i]
+                ),
                 lapply(seq_len(n), function(j) {
                   tags$circle(
                     cx = x_seq[j],
