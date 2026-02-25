@@ -14,8 +14,6 @@ library(ggplot2)
 library(arrow)
 
 
-setwd("C:/Users/lrabourdin/Documents/Dossier Travail/Statut/2026/Dashboard")
-
 data <- iris
 data$Key <- names(islands)[sample(1:10, nrow(data), replace = TRUE)]
 keys_available <- sort(unique(data$Key))
@@ -27,10 +25,30 @@ source_utf8 <- function(file) {
   expr <- parse(text = code)
   eval(expr, envir = .GlobalEnv)
 }
-source_utf8("C:/Users/lrabourdin/Documents/Dossier Travail/Statut/2026/Dashboard/FonctionsDashboard.R")
+functions_file <- if (file.exists("Dashboard/FonctionsDashboard.R")) {
+  "Dashboard/FonctionsDashboard.R"
+} else {
+  "FonctionsDashboard.R"
+}
+
+source_utf8(functions_file)
 
 
-addResourcePath("emojis", "Emojis")
+emoji_path <- if (file.exists("Dashboard/Emojis")) {
+  "Dashboard/Emojis"
+} else {
+  "Emojis"
+}
+
+addResourcePath("emojis", emoji_path)
+
+departements_geojson <- if (file.exists("Dashboard/departements.json")) {
+  "Dashboard/departements.json"
+} else if (file.exists("departements.json")) {
+  "departements.json"
+} else {
+  "https://france-geojson.gregoiredavid.fr/repo/departements.geojson"
+}
 
 #Dummy Data
 get_bar_data <- function(key) {
@@ -67,12 +85,119 @@ content_map <- list(
   
   "Vue générale" = function() {
     ui_dashboard_grid(
-      ui_card(title = "Masse salariale",subtitle = "Annuel",size = "normal",span = "span1", barplot_ui("bar1")),
-      ui_card(title = "Masse salariale",subtitle = "Annuel",size = "normal",span = "span2", barplot_ui("bar2")),
-      ui_card(title = "Masse salariale",subtitle = "Annuel",size = "normal",span = "span1", barplot_ui("bar3")),
-      ui_card(title = "Masse salariale",subtitle = "Annuel",size = "normal",span = "span1", barplot_ui("bar4")),
-      ui_card(title = "Masse salariale",subtitle = "Annuel",size = "large",span = "span2", groupBar_ui("BarplotGrouped1")),
-      ui_card(title = "Masse salariale",subtitle = "Annuel",size = "large",span = "span2", stackedBar_ui ("BarplotStacked1")),
+      create_summary_kpi_card(
+        id = "summary_kpi_1",
+        data_r = NULL,
+        style = "executive",
+        scale = 1.00,
+        title = "Synthèse sélection",
+        subtitle = "10 champs + 3 indicateurs",
+        size = "large",
+        span = "span2"
+      ),
+      create_global_score_kpi_card(
+        id = "global_score_kpi_1",
+        data_r = NULL,
+        style = "executive",
+        scale = 1.00,
+        title = "Score global",
+        subtitle = "Lecture immédiate de position",
+        size = "normal",
+        span = "span1"
+      ),
+      create_france_map_kpi_card(
+        id = "france_map_kpi_1",
+        data_r = NULL,
+        style = "executive",
+        scale = 1.02,
+        title = "Comparaison géographique",
+        subtitle = "Département cible vs limitrophes",
+        size = "large",
+        span = "span2"
+      ),
+      # Exemples du pipeline factory "R-like" : create_barplot_card(...)
+      create_barplot_card(
+        id = "bar1",
+        data_r = NULL,
+        style = "executive",
+        scale = 1.05,
+        unit = "",
+        size = "normal",
+        span = "span1"
+      ),
+      create_barplot_card(
+        id = "bar2",
+        data_r = NULL,
+        style = "executive",
+        scale = 1.1,
+        unit = "",
+        size = "normal",
+        span = "span2"
+      ),
+      create_barplot_card(
+        id = "bar3",
+        data_r = NULL,
+        style = "compact",
+        scale = 1,
+        unit = "",
+        size = "normal",
+        span = "span1"
+      ),
+      create_lineplot_card(
+        id = "line1",
+        data_r = NULL,
+        style = "executive",
+        scale = 1,
+        unit = "",
+        title = "Tendance salariale",
+        subtitle = "Annuel",
+        size = "normal",
+        span = "span1"
+      ),
+      create_multilineplot_card(
+        id = "multiline1",
+        data_r = NULL,
+        style = "executive",
+        scale = 1.03,
+        unit = "%",
+        title = "Comparatif trajectoires",
+        subtitle = "Jusqu'à 6 séries",
+        size = "large",
+        span = "span2"
+      ),
+      create_special_kpi_card(
+        id = "kpi_special_1",
+        values_r = NULL,
+        compare_r = NULL,
+        style = "executive",
+        scale = 1.00,
+        title = "LM/LD - En cours",
+        subtitle = "KPI spécial"
+      ),
+      create_binary_kpi_card(
+        id = "binary_kpi_1",
+        data_r = NULL,
+        style = "executive",
+        scale = 1.00,
+        title = "Couverture des risques",
+        subtitle = "Phénomène binaire (0/1)",
+        size = "large",
+        span = "span2"
+      ),
+      create_groupbar_card(
+        id = "BarplotGrouped1",
+        data_r = NULL,
+        style = "executive",
+        scale = 1.03,
+        unit = "%"
+      ),
+      create_stackedbar_card(
+        id = "BarplotStacked1",
+        data_r = NULL,
+        style = "executive",
+        scale = 1.03,
+        unit = "%"
+      ),
 
     )
   },
@@ -92,6 +217,13 @@ ui <- fluidPage(
   useShinyjs(),
   copyCard(),
   barplot_css(),
+  lineplot_css(),
+  multilineplot_css(),
+  special_kpi_css(),
+  binary_kpi_css(),
+  summary_kpi_css(),
+  global_score_kpi_css(),
+  france_map_kpi_css(),
   ui_card_css(),
   container_size_js(),
   #stackedBar_css(),
@@ -129,6 +261,83 @@ server<-function(input, output, session) {
   output$debug <- renderText({
     paste("Clé sélectionnée :", selected_key())
   })
+
+  summary_kpi_data <- reactive({
+    key <- selected_key()
+    key_value <- if (length(key) >= 1 && !is.na(key[[1]]) && nzchar(key[[1]])) key[[1]] else "Sélection non renseignée"
+
+    fields <- data.frame(
+      champ = c(
+        "Clé", "Population", "Établissements", "Région", "Segment",
+        "Sinistralité", "Budget", "Ancienneté", "Exposition", "Niveau de risque"
+      ),
+      valeur = c(
+        key_value,
+        "12 480 agents",
+        "38",
+        "Île-de-France",
+        "Santé / Médico-social",
+        "Modérée",
+        "27.4 M€",
+        "8.2 ans",
+        "74 %",
+        "2.6 / 5"
+      ),
+      stringsAsFactors = FALSE
+    )
+
+    indicators <- data.frame(
+      indicateur = c("Coût moyen", "Fréquence", "Gravité"),
+      `2022` = c(11.2, 3.7, 1.9),
+      `2023` = c(11.8, 3.5, 2.1),
+      `2024` = c(12.1, 3.2, 2.4),
+      check.names = FALSE
+    )
+
+    list(fields = fields, indicators = indicators)
+  })
+
+  create_summary_kpi_card_server(
+    id = "summary_kpi_1",
+    data_r = summary_kpi_data,
+    unit = ""
+  )
+
+  global_score_data <- reactive({
+    data.frame(
+      annee = c("2021", "2022", "2023", "2024"),
+      score = c(4.9, 3.5, 4.4, 4.3),
+      stringsAsFactors = FALSE
+    )
+  })
+
+  create_global_score_kpi_card_server(
+    id = "global_score_kpi_1",
+    data_r = global_score_data,
+    unit = "/10"
+  )
+
+  france_map_values <- reactive({
+    set.seed(42)
+    data.frame(
+      code = c("67", "68", "57", "54", "88", "90", "70", "52", "55", "08", "10", "21", "25", "39"),
+      value = round(runif(14, min = 2.7, max = 4.6), 2),
+      stringsAsFactors = FALSE
+    )
+  })
+
+  france_map_data <- reactive({
+    list(
+      geojson_path = departements_geojson,
+      dept_code = "67",
+      values = france_map_values()
+    )
+  })
+
+  create_france_map_kpi_card_server(
+    id = "france_map_kpi_1",
+    data_r = france_map_data
+  )
   
   bar_data <- reactive({
     data.frame(
@@ -137,27 +346,91 @@ server<-function(input, output, session) {
     )
   })
   
-  barplot_server(
+  # Serveur associé aux cartes factory
+  create_barplot_card_server(
     id = "bar1",
-    data_r = bar_data
+    data_r = bar_data,
+    style = "executive",
+    unit = ""
   )
-  barplot_server(
+  create_barplot_card_server(
     id = "bar2",
-    data_r = bar_data
+    data_r = bar_data,
+    style = "executive",
+    unit = ""
   )
-  barplot_server(
+  create_barplot_card_server(
     id = "bar3",
-    data_r = bar_data
+    data_r = bar_data,
+    style = "compact",
+    unit = ""
   )
-  barplot_server(
-    id = "bar4",
-    data_r = bar_data
+  create_lineplot_card_server(
+    id = "line1",
+    data_r = bar_data,
+    style = "executive",
+    unit = ""
   )
-  barplot_server(
-    id = "bar5",
-    data_r = bar_data
+
+  multiline_data <- reactive({
+    data.frame(
+      year = c("2021", "2022", "2023", "2024"),
+      Masse = c(100, 108, 116, 121),
+      Sinistres = c(82, 88, 91, 97),
+      Taux = c(64, 67, 70, 73),
+      AT = c(42, 46, 49, 54),
+      LT = c(53, 52, 56, 59)
+    )
+  })
+
+  create_multilineplot_card_server(
+    id = "multiline1",
+    data_r = multiline_data,
+    style = "executive",
+    unit = "%"
   )
-  
+
+  kpi_values_data <- reactive({
+    data.frame(
+      metric = c("Coût total", "Durée Totale", "Coût / sinistre", "Durée / sinistre"),
+      `2021` = c(1747204, 33962, 12847, 250),
+      `2022` = c(2166413, 48633, 11463, 257),
+      `2023` = c(2763360, 60736, 11759, 258),
+      `2024` = c(2772580, 64442, 12660, 294),
+      check.names = FALSE
+    )
+  })
+
+  kpi_compare_data <- reactive({
+    data.frame(
+      metric = c("Coût total", "Durée Totale", "Coût / sinistre", "Durée / sinistre"),
+      collectivite = c(36461.3, 801.9, 12182.2, 264.9),
+      groupe = c(33762.4, 1030.9, 9612.5, 243.3)
+    )
+  })
+
+  create_special_kpi_card_server(
+    id = "kpi_special_1",
+    values_r = kpi_values_data,
+    compare_r = kpi_compare_data,
+    unit = " €"
+  )
+
+  binary_kpi_data <- reactive({
+    data.frame(
+      metric = c("MAL", "MAT/PAT", "LM/LD", "AT(IJ)", "AT(FM)", "DC"),
+      `2021` = c(0, 0, 1, 1, 1, 0),
+      `2022` = c(0, 0, 1, 1, 1, 0),
+      `2023` = c(0, 0, 1, 1, 1, 0),
+      `2024` = c(0, 0, 1, 1, 1, 0),
+      check.names = FALSE
+    )
+  })
+
+  create_binary_kpi_card_server(
+    id = "binary_kpi_1",
+    data_r = binary_kpi_data
+  )
   
   stack_data <- reactive({
     data.frame(
@@ -169,8 +442,18 @@ server<-function(input, output, session) {
   })
   
   
-  stackedBar_server("BarplotStacked1",stack_data,unit = "%")
-  groupBar_server("BarplotGrouped1",stack_data,unit = "%")
+  create_stackedbar_card_server(
+    id = "BarplotStacked1",
+    data_r = stack_data,
+    style = "executive",
+    unit = "%"
+  )
+  create_groupbar_card_server(
+    id = "BarplotGrouped1",
+    data_r = stack_data,
+    style = "executive",
+    unit = "%"
+  )
 
 }
 
