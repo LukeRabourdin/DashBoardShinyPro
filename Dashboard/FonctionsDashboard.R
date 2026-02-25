@@ -2445,8 +2445,8 @@ france_map_kpi_server <- function(id, data_r) {
         if (!is.null(bb) && all(is.finite(as.numeric(bb)))) {
           xspan <- max(1, as.numeric(bb["xmax"] - bb["xmin"]))
           yspan <- max(1, as.numeric(bb["ymax"] - bb["ymin"]))
-          pad_x <- xspan * 0.12
-          pad_y <- yspan * 0.12
+          pad_x <- xspan * 0.132
+          pad_y <- yspan * 0.132
 
           view_bb <- c(
             xmin = as.numeric(bb["xmin"] - pad_x),
@@ -2492,7 +2492,7 @@ france_map_kpi_server <- function(id, data_r) {
 
           if (!is.null(label_pts) && nrow(label_pts) == nrow(label_df)) {
             label_txt <- paste0(label_df$dep_name, " (", label_df$code, ")", "\n", sprintf("%.2f%%", label_df$value))
-            text(label_pts[, 1], label_pts[, 2], labels = label_txt, cex = 0.50, font = 2, col = "#102A43")
+            text(label_pts[, 1], label_pts[, 2], labels = label_txt, cex = 0.525, font = 2, col = "#102A43")
           }
         }
       },
