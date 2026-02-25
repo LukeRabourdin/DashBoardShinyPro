@@ -42,6 +42,14 @@ emoji_path <- if (file.exists("Dashboard/Emojis")) {
 
 addResourcePath("emojis", emoji_path)
 
+departements_geojson <- if (file.exists("Dashboard/departements.json")) {
+  "Dashboard/departements.json"
+} else if (file.exists("departements.json")) {
+  "departements.json"
+} else {
+  "https://france-geojson.gregoiredavid.fr/repo/departements.geojson"
+}
+
 #Dummy Data
 get_bar_data <- function(key) {
   data.frame(
@@ -96,6 +104,16 @@ content_map <- list(
         subtitle = "Lecture immédiate de position",
         size = "normal",
         span = "span1"
+      ),
+      create_france_map_kpi_card(
+        id = "france_map_kpi_1",
+        data_r = NULL,
+        style = "executive",
+        scale = 1.02,
+        title = "Comparaison géographique",
+        subtitle = "Département cible vs limitrophes",
+        size = "large",
+        span = "span2"
       ),
       # Exemples du pipeline factory "R-like" : create_barplot_card(...)
       create_barplot_card(
@@ -205,6 +223,7 @@ ui <- fluidPage(
   binary_kpi_css(),
   summary_kpi_css(),
   global_score_kpi_css(),
+  france_map_kpi_css(),
   ui_card_css(),
   container_size_js(),
   #stackedBar_css(),
@@ -296,6 +315,28 @@ server<-function(input, output, session) {
     id = "global_score_kpi_1",
     data_r = global_score_data,
     unit = "/10"
+  )
+
+  france_map_values <- reactive({
+    set.seed(42)
+    data.frame(
+      code = c("67", "68", "57", "54", "88", "90", "70", "52", "55", "08", "10", "21", "25", "39"),
+      value = round(runif(14, min = 2.7, max = 4.6), 2),
+      stringsAsFactors = FALSE
+    )
+  })
+
+  france_map_data <- reactive({
+    list(
+      geojson_path = departements_geojson,
+      dept_code = "67",
+      values = france_map_values()
+    )
+  })
+
+  create_france_map_kpi_card_server(
+    id = "france_map_kpi_1",
+    data_r = france_map_data
   )
   
   bar_data <- reactive({

@@ -956,6 +956,42 @@ create_global_score_kpi_card_server <- function(id, data_r, unit = "/10") {
   global_score_kpi_server(id = id, data_r = data_r, unit = unit)
 }
 
+create_france_map_kpi_card <- function(
+    id,
+    data_r,
+    style = c("executive", "compact", "minimal"),
+    scale = 1.00,
+    title = "Comparaison territoriale",
+    subtitle = "Département vs limitrophes",
+    size = NULL,
+    span = NULL
+) {
+  style <- match.arg(style)
+
+  defaults <- switch(
+    style,
+    executive = list(size = "large", span = "span2"),
+    compact   = list(size = "normal", span = "span2"),
+    minimal   = list(size = "normal", span = "span1")
+  )
+
+  if (is.null(size)) size <- defaults$size
+  if (is.null(span)) span <- defaults$span
+
+  ui_card(
+    title = title,
+    subtitle = subtitle,
+    size = size,
+    span = span,
+    france_map_kpi_ui(id),
+    scale = scale
+  )
+}
+
+create_france_map_kpi_card_server <- function(id, data_r) {
+  france_map_kpi_server(id = id, data_r = data_r)
+}
+
 create_binary_kpi_card <- function(
     id,
     data_r,
@@ -2198,6 +2234,144 @@ global_score_kpi_server <- function(id, data_r, unit = "/10") {
             tags$span("Plus sinistré du groupe")
           )
         )
+      )
+    })
+  })
+}
+
+france_map_kpi_ui <- function(id) {
+  ns <- NS(id)
+  tags$div(
+    class = "fr-map-kpi-wrap",
+    plotOutput(ns("map"), height = "100%"),
+    uiOutput(ns("legend"))
+  )
+}
+
+france_map_kpi_css <- function() {
+  tags$style(HTML("
+    .fr-map-kpi-wrap {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      border-radius: 12px;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(244,248,255,0.42));
+      border: 1px solid rgba(185, 198, 214, 0.42);
+    }
+
+    .fr-map-kpi-legend {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      padding: 7px 9px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.86);
+      border: 1px solid rgba(185, 198, 214, 0.5);
+      font-size: 10px;
+      color: #314965;
+      pointer-events: none;
+      line-height: 1.35;
+      box-shadow: 0 4px 14px rgba(24, 60, 108, 0.08);
+    }
+
+    .fr-map-kpi-legend .v {
+      display: inline-block;
+      min-width: 44px;
+      font-weight: 700;
+      color: #12345a;
+    }
+  "))
+}
+
+france_map_kpi_server <- function(id, data_r) {
+  moduleServer(id, function(input, output, session) {
+    shp_cache <- reactiveVal(NULL)
+
+    get_shape <- function(path) {
+      cached <- shp_cache()
+      if (!is.null(cached)) return(cached)
+
+      shp <- tryCatch({
+        sf::st_read(path, quiet = TRUE)
+      }, error = function(e) NULL)
+      validate(need(!is.null(shp), "Impossible de charger le fichier départements (GeoJSON)."))
+
+      if (!"code" %in% names(shp)) {
+        code_col <- names(shp)[grep("^code$|code_dep|insee|dep", names(shp), ignore.case = TRUE)][1]
+        validate(need(!is.na(code_col), "Colonne code département introuvable dans le GeoJSON."))
+        names(shp)[names(shp) == code_col] <- "code"
+      }
+      shp$code <- as.character(shp$code)
+      shp_cache(shp)
+      shp
+    }
+
+    output$map <- renderPlot({
+      d <- data_r()
+      req(is.list(d), !is.null(d$geojson_path), !is.null(d$values), !is.null(d$dept_code))
+
+      shp <- get_shape(d$geojson_path)
+      vals <- d$values
+      validate(need(is.data.frame(vals), ncol(vals) >= 2, "Table de valeurs invalide"))
+      names(vals)[1:2] <- c("code", "value")
+      vals$code <- as.character(vals$code)
+      vals$value <- as.numeric(vals$value)
+
+      map_df <- merge(shp, vals, by = "code", all.x = TRUE)
+      target <- as.character(d$dept_code)[1]
+
+      target_sf <- map_df[map_df$code == target, ]
+      validate(need(nrow(target_sf) == 1, paste0("Département cible introuvable: ", target)))
+
+      nb_mask <- lengths(sf::st_touches(map_df, target_sf, sparse = TRUE)) > 0
+      map_df$zone <- "Autres"
+      map_df$zone[nb_mask] <- "Limitrophes"
+      map_df$zone[map_df$code == target] <- "Cible"
+
+      base_col <- rep("#E2E8F0", nrow(map_df))
+      base_col[map_df$zone == "Limitrophes"] <- "#D1D9E8"
+      base_col[map_df$zone == "Cible"] <- "#CFE2FF"
+
+      val_range <- range(vals$value, na.rm = TRUE)
+      has_vals <- all(is.finite(val_range))
+      pal <- grDevices::colorRampPalette(c("#CFE2FF", "#13A3E8", "#0057B8"))(100)
+      idx <- if (has_vals) {
+        pmax(1, pmin(100, round((map_df$value - val_range[1]) / max(1e-9, diff(val_range)) * 99) + 1))
+      } else {
+        rep(1, nrow(map_df))
+      }
+      fill_col <- base_col
+      fill_col[map_df$zone %in% c("Cible", "Limitrophes") & !is.na(map_df$value)] <- pal[idx[map_df$zone %in% c("Cible", "Limitrophes") & !is.na(map_df$value)]]
+
+      oldpar <- par(no.readonly = TRUE)
+      on.exit(par(oldpar))
+      par(mar = c(0, 0, 0, 0), bg = NA)
+
+      plot(sf::st_geometry(map_df), col = fill_col, border = "#FFFFFF", lwd = 0.6)
+      plot(sf::st_geometry(target_sf), add = TRUE, border = "#FF3B30", lwd = 1.8)
+
+      target_cent <- sf::st_coordinates(sf::st_centroid(sf::st_geometry(target_sf)))[1, ]
+      target_val <- map_df$value[map_df$code == target][1]
+      lbl <- if (is.finite(target_val)) paste0(target, "\n", sprintf("%.2f%%", target_val)) else paste0(target, "\nNA")
+      text(target_cent[1], target_cent[2], labels = lbl, cex = 0.85, font = 2, col = "#102A43")
+    })
+
+    output$legend <- renderUI({
+      d <- data_r()
+      vals <- d$values
+      req(is.data.frame(vals), ncol(vals) >= 2)
+      v <- as.numeric(vals[[2]])
+      v <- v[is.finite(v)]
+      if (!length(v)) {
+        return(tags$div(class = "fr-map-kpi-legend", "Aucune valeur disponible"))
+      }
+      tags$div(
+        class = "fr-map-kpi-legend",
+        tags$div(tags$span(class = "v", sprintf("%.2f%%", min(v))), "Min"),
+        tags$div(tags$span(class = "v", sprintf("%.2f%%", mean(v))), "Moyenne"),
+        tags$div(tags$span(class = "v", sprintf("%.2f%%", max(v))), "Max")
       )
     })
   })
