@@ -1824,15 +1824,16 @@ binary_kpi_css <- function() {
     }
 
     .binary-kpi-cell.value-1 {
-      background: linear-gradient(135deg, #00B894, #2ED8B6);
-      border-color: rgba(0, 136, 109, 0.74);
-      box-shadow: 0 6px 16px rgba(0, 184, 148, 0.22);
+      background: linear-gradient(135deg, #13A3E8, #49BDF0);
+      border-color: rgba(11, 122, 180, 0.76);
+      box-shadow: 0 6px 16px rgba(19, 163, 232, 0.24);
     }
 
     .binary-kpi-cell.value-0 {
-      background: linear-gradient(135deg, #5A46B8, #7A68D1);
-      border-color: rgba(73, 57, 156, 0.78);
-      box-shadow: 0 6px 16px rgba(90, 70, 184, 0.22);
+      background: linear-gradient(135deg, rgba(126, 129, 158, 0.62), rgba(166, 170, 196, 0.62));
+      border-color: rgba(112, 115, 144, 0.52);
+      box-shadow: 0 4px 12px rgba(101, 104, 132, 0.16);
+      opacity: 0.68;
     }
 
     .binary-kpi-cell:hover {
