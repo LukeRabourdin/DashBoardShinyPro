@@ -1457,7 +1457,8 @@ multilineplot_ui <- function(id) {
     tags$div(
       id = ns("container"),
       class = "multilineplot-container",
-      uiOutput(ns("multilineplot"))
+      uiOutput(ns("multilineplot")),
+      tags$div(id = ns("tooltip"), class = "multiline-tooltip")
     )
   )
 }
@@ -1507,6 +1508,45 @@ multilineplot_css <- function(){
       min-height: 120px;
       border-radius: 12px;
       background: linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0.10));
+      position: relative;
+    }
+
+    .multiline-tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: rgba(255,255,255,0.96);
+      border: 1px solid var(--stroke-strong);
+      padding: 10px 12px;
+      border-radius: 10px;
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(8px);
+      display: none;
+      z-index: 999;
+      min-width: 150px;
+      transform: translate(-50%, calc(-100% - 12px));
+      font-size: 12px;
+      color: #1f2d3d;
+    }
+
+    .multiline-tooltip-title {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .multiline-tooltip-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .multiline-tooltip-value {
+      color: #4f647d;
+      font-weight: 500;
     }
 
     .multiline-axis {
@@ -1686,7 +1726,10 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
                   r = if (style == "compact") 3.5 else 4.2,
                   class = "multiline-point",
                   fill = colors[i],
-                  tags$title(paste0(series_names[i], " • ", years[j], " : ", round(values[j], 1), unit))
+                  `data-series` = series_names[i],
+                  `data-year` = years[j],
+                  `data-value` = paste0(round(values[j], 1), unit),
+                  `data-color` = colors[i]
                 )
               })
             )
@@ -1700,7 +1743,36 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
               years[j]
             )
           })
-        )
+        ),
+        tags$script(HTML(sprintf("(function(){
+  var container = document.getElementById('%s');
+  var tooltip = document.getElementById('%s');
+  if (!container || !tooltip) return;
+
+  container.querySelectorAll('.multiline-point').forEach(function(pt){
+    pt.addEventListener('mouseenter', function(){
+      var color = pt.getAttribute('data-color') || '#116AC4';
+      var series = pt.getAttribute('data-series') || '';
+      var year = pt.getAttribute('data-year') || '';
+      var value = pt.getAttribute('data-value') || '';
+
+      tooltip.innerHTML = '<div class=\"multiline-tooltip-title\"><span class=\"multiline-tooltip-dot\" style=\"background:' + color + ';\"></span>' + series + ' · ' + year + '</div>' +
+                        '<div class=\"multiline-tooltip-value\">Valeur : ' + value + '</div>';
+      tooltip.style.display = 'block';
+    });
+
+    pt.addEventListener('mousemove', function(ev){
+      var r = container.getBoundingClientRect();
+      tooltip.style.left = (ev.clientX - r.left) + 'px';
+      tooltip.style.top = (ev.clientY - r.top) + 'px';
+    });
+
+    pt.addEventListener('mouseleave', function(){
+      tooltip.style.display = 'none';
+    });
+  });
+})();", session$ns("container"), session$ns("tooltip")))
+      )
       })
     })
   })
