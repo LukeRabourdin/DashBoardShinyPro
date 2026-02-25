@@ -87,6 +87,16 @@ content_map <- list(
         size = "large",
         span = "span2"
       ),
+      create_global_score_kpi_card(
+        id = "global_score_kpi_1",
+        data_r = NULL,
+        style = "executive",
+        scale = 1.00,
+        title = "Score global",
+        subtitle = "Lecture immédiate de position",
+        size = "normal",
+        span = "span1"
+      ),
       # Exemples du pipeline factory "R-like" : create_barplot_card(...)
       create_barplot_card(
         id = "bar1",
@@ -194,6 +204,7 @@ ui <- fluidPage(
   special_kpi_css(),
   binary_kpi_css(),
   summary_kpi_css(),
+  global_score_kpi_css(),
   ui_card_css(),
   container_size_js(),
   #stackedBar_css(),
@@ -271,6 +282,20 @@ server<-function(input, output, session) {
     id = "summary_kpi_1",
     data_r = summary_kpi_data,
     unit = ""
+  )
+
+  global_score_data <- reactive({
+    data.frame(
+      annee = c("2021", "2022", "2023", "2024"),
+      score = c(4.9, 3.5, 4.4, 4.3),
+      stringsAsFactors = FALSE
+    )
+  })
+
+  create_global_score_kpi_card_server(
+    id = "global_score_kpi_1",
+    data_r = global_score_data,
+    unit = "/10"
   )
   
   bar_data <- reactive({
