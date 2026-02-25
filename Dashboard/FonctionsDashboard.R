@@ -1697,55 +1697,7 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
       output$multilineplot <- renderUI({
         grid_lines <- c(0, 0.5, 1)
 
-        tagList(
-          tags$svg(
-          width = width,
-          height = height,
-          viewBox = paste0("0 0 ", width, " ", height),
-          preserveAspectRatio = "none",
-
-          lapply(grid_lines, function(g) {
-            y <- height - margin_bottom - (usable_h * g)
-            tagList(
-              tags$line(x1 = margin_side, y1 = y, x2 = width - margin_side, y2 = y, class = if (g == 0) "multiline-axis" else "multiline-grid"),
-              if (g != 0) tags$text(x = margin_side - 6, y = y + 3, class = "multiline-yhint", paste0(round(min_val + range_val * g, 1), unit))
-            )
-          }),
-
-          lapply(seq_along(series_names), function(i) {
-            values <- mat[, i]
-            y_seq <- height - margin_bottom - ((values - min_val) / range_val) * usable_h
-            points <- paste(sprintf('%.2f,%.2f', x_seq, y_seq), collapse = ' ')
-
-            tagList(
-              tags$polyline(points = points, class = "multiline-track", style = paste0("stroke:", colors[i], ";")),
-              tags$polyline(points = points, class = "multiline-line", style = paste0("stroke:", colors[i], ";")),
-              lapply(seq_len(n), function(j) {
-                tags$circle(
-                  cx = x_seq[j],
-                  cy = y_seq[j],
-                  r = if (style == "compact") 3.5 else 4.2,
-                  class = "multiline-point",
-                  fill = colors[i],
-                  `data-series` = series_names[i],
-                  `data-year` = years[j],
-                  `data-value` = paste0(round(values[j], 1), unit),
-                  `data-color` = colors[i]
-                )
-              })
-            )
-          }),
-
-          lapply(seq_len(n), function(j) {
-            tags$text(
-              x = x_seq[j],
-              y = height - height * 0.04,
-              class = "multiline-year",
-              years[j]
-            )
-          })
-        ),
-          tags$script(HTML(sprintf("(function(){
+        tooltip_js <- sprintf("(function(){
   var container = document.getElementById('%s');
   var tooltip = document.getElementById('%s');
   if (!container || !tooltip) return;
@@ -1772,7 +1724,68 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
       tooltip.style.display = 'none';
     });
   });
-})();", session$ns("container"), session$ns("tooltip")))
+})();", session$ns("container"), session$ns("tooltip"))
+
+        tagList(
+          tags$svg(
+            width = width,
+            height = height,
+            viewBox = paste0("0 0 ", width, " ", height),
+            preserveAspectRatio = "none",
+
+            lapply(grid_lines, function(g) {
+              y <- height - margin_bottom - (usable_h * g)
+              tagList(
+                tags$line(
+                  x1 = margin_side,
+                  y1 = y,
+                  x2 = width - margin_side,
+                  y2 = y,
+                  class = if (g == 0) "multiline-axis" else "multiline-grid"
+                ),
+                if (g != 0) tags$text(
+                  x = margin_side - 6,
+                  y = y + 3,
+                  class = "multiline-yhint",
+                  paste0(round(min_val + range_val * g, 1), unit)
+                )
+              )
+            }),
+
+            lapply(seq_along(series_names), function(i) {
+              values <- mat[, i]
+              y_seq <- height - margin_bottom - ((values - min_val) / range_val) * usable_h
+              points <- paste(sprintf('%.2f,%.2f', x_seq, y_seq), collapse = ' ')
+
+              tagList(
+                tags$polyline(points = points, class = "multiline-track", style = paste0("stroke:", colors[i], ";")),
+                tags$polyline(points = points, class = "multiline-line", style = paste0("stroke:", colors[i], ";")),
+                lapply(seq_len(n), function(j) {
+                  tags$circle(
+                    cx = x_seq[j],
+                    cy = y_seq[j],
+                    r = if (style == "compact") 3.5 else 4.2,
+                    class = "multiline-point",
+                    fill = colors[i],
+                    `data-series` = series_names[i],
+                    `data-year` = years[j],
+                    `data-value` = paste0(round(values[j], 1), unit),
+                    `data-color` = colors[i]
+                  )
+                })
+              )
+            }),
+
+            lapply(seq_len(n), function(j) {
+              tags$text(
+                x = x_seq[j],
+                y = height - height * 0.04,
+                class = "multiline-year",
+                years[j]
+              )
+            })
+          ),
+          tags$script(HTML(tooltip_js))
         )
       })
     })
