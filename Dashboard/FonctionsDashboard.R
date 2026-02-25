@@ -1697,7 +1697,8 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
       output$multilineplot <- renderUI({
         grid_lines <- c(0, 0.5, 1)
 
-        tags$svg(
+        tagList(
+          tags$svg(
           width = width,
           height = height,
           viewBox = paste0("0 0 ", width, " ", height),
@@ -1744,7 +1745,7 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
             )
           })
         ),
-        tags$script(HTML(sprintf("(function(){
+          tags$script(HTML(sprintf("(function(){
   var container = document.getElementById('%s');
   var tooltip = document.getElementById('%s');
   if (!container || !tooltip) return;
@@ -1772,7 +1773,7 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
     });
   });
 })();", session$ns("container"), session$ns("tooltip")))
-      )
+        )
       })
     })
   })
