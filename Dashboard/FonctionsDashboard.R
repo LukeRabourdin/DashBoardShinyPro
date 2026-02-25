@@ -2289,6 +2289,17 @@ france_map_kpi_server <- function(id, data_r) {
   moduleServer(id, function(input, output, session) {
     shp_cache <- reactiveVal(NULL)
 
+    normalize_geometries <- function(sf_obj) {
+      if (!inherits(sf_obj, "sf")) return(sf_obj)
+
+      sf_obj <- sf::st_make_valid(sf_obj)
+      if (anyNA(sf::st_is_valid(sf_obj))) {
+        sf_obj <- sf::st_buffer(sf_obj, 0)
+      }
+
+      sf_obj
+    }
+
     get_shape <- function(path) {
       cached <- shp_cache()
       if (!is.null(cached)) return(cached)
@@ -2304,11 +2315,16 @@ france_map_kpi_server <- function(id, data_r) {
         names(shp)[names(shp) == code_col] <- "code"
       }
       shp$code <- as.character(shp$code)
+      shp <- normalize_geometries(shp)
       shp_cache(shp)
       shp
     }
 
     output$map <- renderPlot({
+      map_width <- session$clientData[[paste0("output_", session$ns("map"), "_width")]]
+      map_height <- session$clientData[[paste0("output_", session$ns("map"), "_height")]]
+      req(is.numeric(map_width), is.numeric(map_height), map_width > 1, map_height > 1)
+
       d <- data_r()
       req(is.list(d), !is.null(d$geojson_path), !is.null(d$values), !is.null(d$dept_code))
 
@@ -2320,10 +2336,15 @@ france_map_kpi_server <- function(id, data_r) {
       vals$value <- as.numeric(vals$value)
 
       map_df <- merge(shp, vals, by = "code", all.x = TRUE)
+      map_df <- normalize_geometries(map_df)
       target <- as.character(d$dept_code)[1]
 
       target_sf <- map_df[map_df$code == target, ]
       validate(need(nrow(target_sf) == 1, paste0("Département cible introuvable: ", target)))
+
+      old_s2 <- sf::sf_use_s2()
+      on.exit(sf::sf_use_s2(old_s2), add = TRUE)
+      sf::sf_use_s2(FALSE)
 
       nb_mask <- lengths(sf::st_touches(map_df, target_sf, sparse = TRUE)) > 0
       map_df$zone <- "Autres"
@@ -2346,13 +2367,13 @@ france_map_kpi_server <- function(id, data_r) {
       fill_col[map_df$zone %in% c("Cible", "Limitrophes") & !is.na(map_df$value)] <- pal[idx[map_df$zone %in% c("Cible", "Limitrophes") & !is.na(map_df$value)]]
 
       oldpar <- par(no.readonly = TRUE)
-      on.exit(par(oldpar))
+      on.exit(par(oldpar), add = TRUE)
       par(mar = c(0, 0, 0, 0), bg = NA)
 
       plot(sf::st_geometry(map_df), col = fill_col, border = "#FFFFFF", lwd = 0.6)
       plot(sf::st_geometry(target_sf), add = TRUE, border = "#FF3B30", lwd = 1.8)
 
-      target_cent <- sf::st_coordinates(sf::st_centroid(sf::st_geometry(target_sf)))[1, ]
+      target_cent <- sf::st_coordinates(sf::st_point_on_surface(sf::st_geometry(target_sf)))[1, ]
       target_val <- map_df$value[map_df$code == target][1]
       lbl <- if (is.finite(target_val)) paste0(target, "\n", sprintf("%.2f%%", target_val)) else paste0(target, "\nNA")
       text(target_cent[1], target_cent[2], labels = lbl, cex = 0.85, font = 2, col = "#102A43")
