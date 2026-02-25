@@ -2293,7 +2293,7 @@ france_map_kpi_server <- function(id, data_r) {
       if (!inherits(sf_obj, "sf")) return(sf_obj)
 
       sf_obj <- sf::st_make_valid(sf_obj)
-      if (anyNA(sf::st_is_valid(sf_obj))) {
+      if (any(!sf::st_is_valid(sf_obj))) {
         sf_obj <- sf::st_buffer(sf_obj, 0)
       }
 
@@ -2320,64 +2320,77 @@ france_map_kpi_server <- function(id, data_r) {
       shp
     }
 
-    output$map <- renderPlot({
-      map_width <- session$clientData[[paste0("output_", session$ns("map"), "_width")]]
-      map_height <- session$clientData[[paste0("output_", session$ns("map"), "_height")]]
-      req(is.numeric(map_width), is.numeric(map_height), map_width > 1, map_height > 1)
-
-      d <- data_r()
-      req(is.list(d), !is.null(d$geojson_path), !is.null(d$values), !is.null(d$dept_code))
-
-      shp <- get_shape(d$geojson_path)
-      vals <- d$values
-      validate(need(is.data.frame(vals), ncol(vals) >= 2, "Table de valeurs invalide"))
-      names(vals)[1:2] <- c("code", "value")
-      vals$code <- as.character(vals$code)
-      vals$value <- as.numeric(vals$value)
-
-      map_df <- merge(shp, vals, by = "code", all.x = TRUE)
-      map_df <- normalize_geometries(map_df)
-      target <- as.character(d$dept_code)[1]
-
-      target_sf <- map_df[map_df$code == target, ]
-      validate(need(nrow(target_sf) == 1, paste0("Département cible introuvable: ", target)))
-
-      old_s2 <- sf::sf_use_s2()
-      on.exit(sf::sf_use_s2(old_s2), add = TRUE)
-      sf::sf_use_s2(FALSE)
-
-      nb_mask <- lengths(sf::st_touches(map_df, target_sf, sparse = TRUE)) > 0
-      map_df$zone <- "Autres"
-      map_df$zone[nb_mask] <- "Limitrophes"
-      map_df$zone[map_df$code == target] <- "Cible"
-
-      base_col <- rep("#E2E8F0", nrow(map_df))
-      base_col[map_df$zone == "Limitrophes"] <- "#D1D9E8"
-      base_col[map_df$zone == "Cible"] <- "#CFE2FF"
-
-      val_range <- range(vals$value, na.rm = TRUE)
-      has_vals <- all(is.finite(val_range))
-      pal <- grDevices::colorRampPalette(c("#CFE2FF", "#13A3E8", "#0057B8"))(100)
-      idx <- if (has_vals) {
-        pmax(1, pmin(100, round((map_df$value - val_range[1]) / max(1e-9, diff(val_range)) * 99) + 1))
-      } else {
-        rep(1, nrow(map_df))
-      }
-      fill_col <- base_col
-      fill_col[map_df$zone %in% c("Cible", "Limitrophes") & !is.na(map_df$value)] <- pal[idx[map_df$zone %in% c("Cible", "Limitrophes") & !is.na(map_df$value)]]
-
-      oldpar <- par(no.readonly = TRUE)
-      on.exit(par(oldpar), add = TRUE)
-      par(mar = c(0, 0, 0, 0), bg = NA)
-
-      plot(sf::st_geometry(map_df), col = fill_col, border = "#FFFFFF", lwd = 0.6)
-      plot(sf::st_geometry(target_sf), add = TRUE, border = "#FF3B30", lwd = 1.8)
-
-      target_cent <- sf::st_coordinates(sf::st_point_on_surface(sf::st_geometry(target_sf)))[1, ]
-      target_val <- map_df$value[map_df$code == target][1]
-      lbl <- if (is.finite(target_val)) paste0(target, "\n", sprintf("%.2f%%", target_val)) else paste0(target, "\nNA")
-      text(target_cent[1], target_cent[2], labels = lbl, cex = 0.85, font = 2, col = "#102A43")
+    plot_width <- reactive({
+      w <- session$clientData[[paste0("output_", session$ns("map"), "_width")]]
+      if (!is.numeric(w) || is.na(w) || w < 80) 400 else w
     })
+
+    plot_height <- reactive({
+      h <- session$clientData[[paste0("output_", session$ns("map"), "_height")]]
+      if (!is.numeric(h) || is.na(h) || h < 80) 300 else h
+    })
+
+    output$map <- renderPlot(
+      {
+        d <- data_r()
+        req(is.list(d), !is.null(d$geojson_path), !is.null(d$values), !is.null(d$dept_code))
+
+        shp <- get_shape(d$geojson_path)
+        vals <- d$values
+        validate(need(is.data.frame(vals), ncol(vals) >= 2, "Table de valeurs invalide"))
+        names(vals)[1:2] <- c("code", "value")
+        vals$code <- as.character(vals$code)
+        vals$value <- as.numeric(vals$value)
+
+        map_df <- merge(shp, vals, by = "code", all.x = TRUE)
+        map_df <- normalize_geometries(map_df)
+        target <- as.character(d$dept_code)[1]
+
+        target_sf <- map_df[map_df$code == target, ]
+        validate(need(nrow(target_sf) == 1, paste0("Département cible introuvable: ", target)))
+
+        map_ops <- map_df
+        if (isTRUE(sf::st_is_longlat(map_ops))) {
+          map_ops <- sf::st_transform(map_ops, 2154)
+        }
+
+        target_ops <- map_ops[map_ops$code == target, ]
+        nb_mask <- lengths(sf::st_touches(map_ops, target_ops, sparse = TRUE)) > 0
+
+        map_ops$zone <- "Autres"
+        map_ops$zone[nb_mask] <- "Limitrophes"
+        map_ops$zone[map_ops$code == target] <- "Cible"
+
+        base_col <- rep("#E2E8F0", nrow(map_ops))
+        base_col[map_ops$zone == "Limitrophes"] <- "#D1D9E8"
+        base_col[map_ops$zone == "Cible"] <- "#CFE2FF"
+
+        val_range <- range(vals$value, na.rm = TRUE)
+        has_vals <- all(is.finite(val_range))
+        pal <- grDevices::colorRampPalette(c("#CFE2FF", "#13A3E8", "#0057B8"))(100)
+        idx <- if (has_vals) {
+          pmax(1, pmin(100, round((map_ops$value - val_range[1]) / max(1e-9, diff(val_range)) * 99) + 1))
+        } else {
+          rep(1, nrow(map_ops))
+        }
+
+        fill_col <- base_col
+        mask <- map_ops$zone %in% c("Cible", "Limitrophes") & !is.na(map_ops$value)
+        fill_col[mask] <- pal[idx[mask]]
+
+        par(mar = c(0, 0, 0, 0), xaxs = "i", yaxs = "i")
+        plot(sf::st_geometry(map_ops), col = fill_col, border = "#FFFFFF", lwd = 0.6)
+        plot(sf::st_geometry(target_ops), add = TRUE, border = "#FF3B30", lwd = 1.8)
+
+        target_cent <- sf::st_coordinates(sf::st_point_on_surface(sf::st_geometry(target_ops)))[1, ]
+        target_val <- map_ops$value[map_ops$code == target][1]
+        lbl <- if (is.finite(target_val)) paste0(target, "\n", sprintf("%.2f%%", target_val)) else paste0(target, "\nNA")
+        text(target_cent[1], target_cent[2], labels = lbl, cex = 0.85, font = 2, col = "#102A43")
+      },
+      width = function() plot_width(),
+      height = function() plot_height(),
+      res = 96
+    )
 
     output$legend <- renderUI({
       d <- data_r()
