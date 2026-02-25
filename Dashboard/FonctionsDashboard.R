@@ -53,7 +53,7 @@ header_css <- function() {
       height: 90px;
       padding: 0 32px;
 
-      display: flex;
+      display: block;
       align-items: center;
 
       font-size: 22px;
@@ -1504,26 +1504,27 @@ special_kpi_css <- function() {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      justify-content: space-between;
+      justify-content: flex-start;
       overflow: hidden;
       box-sizing: border-box;
     }
 
     .special-kpi-wrap > .shiny-html-output {
-      flex: 1 1 0;
+      flex: 1 1 auto;
       min-height: 0;
-      display: flex;
+      display: block;
     }
 
     .special-kpi-panel {
       width: 100%;
       max-width: 100%;
-      height: 100%;
+      height: auto;
       border: 1px solid rgba(185, 198, 214, 0.55);
       border-radius: 12px;
       background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.38));
       overflow: hidden;
       box-sizing: border-box;
+      min-height: 0;
       display: flex;
       flex-direction: column;
     }
