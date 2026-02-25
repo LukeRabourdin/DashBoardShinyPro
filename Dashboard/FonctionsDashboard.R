@@ -2282,6 +2282,36 @@ france_map_kpi_css <- function() {
       font-weight: 700;
       color: #12345a;
     }
+
+    .fr-map-kpi-legend .legend-title {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      opacity: 0.78;
+      margin-bottom: 4px;
+    }
+
+    .fr-map-kpi-legend .legend-gradient {
+      width: 160px;
+      height: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(18,52,90,0.22);
+      background: linear-gradient(90deg, #CFE2FF 0%, #13A3E8 50%, #0057B8 100%);
+      margin: 4px 0 6px 0;
+    }
+
+    .fr-map-kpi-legend .legend-scale {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 10px;
+      color: #314965;
+    }
+
+    .fr-map-kpi-legend .legend-scale .mid {
+      text-align: center;
+      flex: 1;
+    }
   "))
 }
 
@@ -2315,6 +2345,17 @@ france_map_kpi_server <- function(id, data_r) {
         names(shp)[names(shp) == code_col] <- "code"
       }
       shp$code <- as.character(shp$code)
+
+      if (!"dep_name" %in% names(shp)) {
+        name_col <- names(shp)[grep("^nom$|nom_dep|lib|name", names(shp), ignore.case = TRUE)][1]
+        if (!is.na(name_col)) {
+          names(shp)[names(shp) == name_col] <- "dep_name"
+        } else {
+          shp$dep_name <- shp$code
+        }
+      }
+      shp$dep_name <- as.character(shp$dep_name)
+
       shp <- normalize_geometries(shp)
       shp_cache(shp)
       shp
@@ -2381,8 +2422,8 @@ france_map_kpi_server <- function(id, data_r) {
         if (!is.null(bb) && all(is.finite(as.numeric(bb)))) {
           xspan <- max(1, as.numeric(bb["xmax"] - bb["xmin"]))
           yspan <- max(1, as.numeric(bb["ymax"] - bb["ymin"]))
-          pad_x <- xspan * 0.8
-          pad_y <- yspan * 0.8
+          pad_x <- xspan * 0.45
+          pad_y <- yspan * 0.45
 
           view_bb <- c(
             xmin = as.numeric(bb["xmin"] - pad_x),
@@ -2416,18 +2457,21 @@ france_map_kpi_server <- function(id, data_r) {
 
         par(mar = c(0, 0, 0, 0), xaxs = "i", yaxs = "i")
         plot(sf::st_geometry(map_view), col = fill_col, border = "#FFFFFF", lwd = 0.6)
-        plot(sf::st_geometry(target_ops), add = TRUE, border = "#FF3B30", lwd = 1.8)
+        plot(sf::st_geometry(target_ops), add = TRUE, border = "#5A46B8", lwd = 2.1)
 
-        target_cent <- tryCatch({
-          sf::st_coordinates(sf::st_point_on_surface(sf::st_geometry(target_ops)))[1, ]
-        }, error = function(e) {
-          bb_target <- sf::st_bbox(target_ops)
-          c((bb_target["xmin"] + bb_target["xmax"]) / 2, (bb_target["ymin"] + bb_target["ymax"]) / 2)
-        })
+        label_df <- map_ops[map_ops$zone %in% c("Cible", "Limitrophes") & is.finite(map_ops$value), ]
+        if (nrow(label_df) > 0) {
+          label_pts <- tryCatch({
+            sf::st_coordinates(sf::st_point_on_surface(sf::st_geometry(label_df)))[, 1:2, drop = FALSE]
+          }, error = function(e) {
+            NULL
+          })
 
-        target_val <- map_ops$value[map_ops$code == target][1]
-        lbl <- if (is.finite(target_val)) paste0(target, "\n", sprintf("%.2f%%", target_val)) else paste0(target, "\nNA")
-        text(target_cent[1], target_cent[2], labels = lbl, cex = 0.85, font = 2, col = "#102A43")
+          if (!is.null(label_pts) && nrow(label_pts) == nrow(label_df)) {
+            label_txt <- paste0(label_df$dep_name, " (", label_df$code, ")", "\n", sprintf("%.2f%%", label_df$value))
+            text(label_pts[, 1], label_pts[, 2], labels = label_txt, cex = 0.62, font = 2, col = "#102A43")
+          }
+        }
       },
       width = function() plot_width(),
       height = function() plot_height(),
@@ -2445,9 +2489,14 @@ france_map_kpi_server <- function(id, data_r) {
       }
       tags$div(
         class = "fr-map-kpi-legend",
-        tags$div(tags$span(class = "v", sprintf("%.2f%%", min(v))), "Min"),
-        tags$div(tags$span(class = "v", sprintf("%.2f%%", mean(v))), "Moyenne"),
-        tags$div(tags$span(class = "v", sprintf("%.2f%%", max(v))), "Max")
+        tags$div(class = "legend-title", "Échelle des valeurs"),
+        tags$div(class = "legend-gradient"),
+        tags$div(
+          class = "legend-scale",
+          tags$span(class = "v", sprintf("%.2f%%", min(v))),
+          tags$span(class = "v mid", sprintf("%.2f%%", mean(v))),
+          tags$span(class = "v", sprintf("%.2f%%", max(v)))
+        )
       )
     })
   })
