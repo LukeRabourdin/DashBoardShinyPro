@@ -1453,7 +1453,6 @@ multilineplot_ui <- function(id) {
 
   tags$div(
     class = "multilineplot-shell",
-    tags$div(class = "multiline-legend-caption", "Légende séries"),
     uiOutput(ns("legend")),
     tags$div(
       id = ns("container"),
@@ -1475,26 +1474,20 @@ multilineplot_css <- function(){
       gap: 10px;
     }
 
-    .multiline-legend-caption {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: #6d8199;
-      margin-bottom: -4px;
-    }
-
     .multilineplot-shell .shiny-html-output {
       width: 100%;
     }
 
     .multiline-legend {
-      display: inline-flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 6px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 14px;
       min-height: 24px;
       padding: 2px 0 4px;
+      overflow-x: auto;
+      white-space: nowrap;
     }
 
     .multiline-legend-item {
