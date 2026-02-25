@@ -116,6 +116,17 @@ content_map <- list(
         size = "normal",
         span = "span1"
       ),
+      create_multilineplot_card(
+        id = "multiline1",
+        data_r = NULL,
+        style = "executive",
+        scale = 1.03,
+        unit = "%",
+        title = "Comparatif trajectoires",
+        subtitle = "Jusqu'à 6 séries",
+        size = "large",
+        span = "span2"
+      ),
       create_groupbar_card(
         id = "BarplotGrouped1",
         data_r = NULL,
@@ -150,6 +161,7 @@ ui <- fluidPage(
   copyCard(),
   barplot_css(),
   lineplot_css(),
+  multilineplot_css(),
   ui_card_css(),
   container_size_js(),
   #stackedBar_css(),
@@ -220,7 +232,24 @@ server<-function(input, output, session) {
     style = "executive",
     unit = ""
   )
-  
+
+  multiline_data <- reactive({
+    data.frame(
+      year = c("2021", "2022", "2023", "2024"),
+      Masse = c(100, 108, 116, 121),
+      Sinistres = c(82, 88, 91, 97),
+      Taux = c(64, 67, 70, 73),
+      AT = c(42, 46, 49, 54),
+      LT = c(53, 52, 56, 59)
+    )
+  })
+
+  create_multilineplot_card_server(
+    id = "multiline1",
+    data_r = multiline_data,
+    style = "executive",
+    unit = "%"
+  )
   
   stack_data <- reactive({
     data.frame(

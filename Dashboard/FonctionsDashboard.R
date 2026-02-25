@@ -809,6 +809,44 @@ create_lineplot_card_server <- function(id, data_r, style = c("executive", "comp
   lineplot_server(id = id, data_r = data_r, style = style, unit = unit)
 }
 
+create_multilineplot_card <- function(
+    id,
+    data_r,
+    style = c("executive", "compact", "minimal"),
+    scale = 1.05,
+    unit = "%",
+    title = "Tendances multi-séries",
+    subtitle = "Comparaison annuelle",
+    size = NULL,
+    span = NULL
+) {
+  style <- match.arg(style)
+
+  defaults <- switch(
+    style,
+    executive = list(size = "large", span = "span2"),
+    compact   = list(size = "normal", span = "span2"),
+    minimal   = list(size = "normal", span = "span1")
+  )
+
+  if (is.null(size)) size <- defaults$size
+  if (is.null(span)) span <- defaults$span
+
+  ui_card(
+    title = title,
+    subtitle = subtitle,
+    size = size,
+    span = span,
+    multilineplot_ui(id),
+    scale = scale
+  )
+}
+
+create_multilineplot_card_server <- function(id, data_r, style = c("executive", "compact", "minimal"), unit = "%") {
+  style <- match.arg(style)
+  multilineplot_server(id = id, data_r = data_r, style = style, unit = unit)
+}
+
 create_groupbar_card <- function(
     id,
     data_r,
@@ -1203,7 +1241,7 @@ lineplot_ui <- function(id) {
 }
 
 lineplot_css <- function(){
-  tags$style(HTML(" 
+  tags$style(HTML("
     .lineplot-container{
       width: 100%;
       height: var(--svg-h);
@@ -1402,6 +1440,264 @@ lineplot_server <- function(id, data_r, style = c("executive", "compact", "minim
                 class = "line-year",
                 labels[i]
               )
+            )
+          })
+        )
+      })
+    })
+  })
+}
+
+multilineplot_ui <- function(id) {
+  ns <- NS(id)
+
+  tags$div(
+    class = "multilineplot-shell",
+    tags$div(id = ns("legend"), class = "multiline-legend"),
+    tags$div(
+      id = ns("container"),
+      class = "multilineplot-container",
+      uiOutput(ns("multilineplot"))
+    )
+  )
+}
+
+multilineplot_css <- function(){
+  tags$style(HTML("
+    .multilineplot-shell {
+      width: 100%;
+      height: var(--svg-h);
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .multiline-legend {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 24px;
+    }
+
+    .multiline-legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(17,106,196,0.16);
+      background: rgba(255,255,255,0.65);
+      color: #304863;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .multiline-legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .multilineplot-container{
+      width: 100%;
+      flex: 1 1 auto;
+      min-height: 120px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0.10));
+    }
+
+    .multiline-axis {
+      stroke: rgba(18,55,97,0.20);
+      stroke-width: 1;
+    }
+
+    .multiline-grid {
+      stroke: rgba(18,55,97,0.10);
+      stroke-width: 1;
+      stroke-dasharray: 3 6;
+    }
+
+    .multiline-track {
+      fill: none;
+      stroke-width: 9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.16;
+      filter: blur(3px);
+      animation: multiLineDraw 950ms cubic-bezier(.2,.8,.2,1) forwards;
+      stroke-dasharray: 1400;
+      stroke-dashoffset: 1400;
+    }
+
+    .multiline-line {
+      fill: none;
+      stroke-width: 3.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      animation: multiLineDraw 950ms cubic-bezier(.2,.8,.2,1) forwards;
+      stroke-dasharray: 1400;
+      stroke-dashoffset: 1400;
+    }
+
+    .multiline-point {
+      stroke: #ffffff;
+      stroke-width: 1.8;
+      transition: r 0.14s ease, stroke-width 0.14s ease, filter 0.14s ease;
+      animation: pointPopMulti 520ms cubic-bezier(.2,.8,.2,1);
+    }
+
+    .multiline-point:hover {
+      r: 6.5;
+      stroke-width: 2.5;
+      filter: brightness(1.04);
+    }
+
+    .multiline-year {
+      font-size: 11px;
+      fill: #7a8ca3;
+      text-anchor: middle;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      animation: fadeUpMulti 420ms ease;
+    }
+
+    .multiline-yhint {
+      font-size: 10px;
+      fill: #8fa0b5;
+      text-anchor: end;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      animation: fadeUpMulti 420ms ease;
+    }
+
+    @keyframes multiLineDraw {
+      to { stroke-dashoffset: 0; }
+    }
+
+    @keyframes pointPopMulti {
+      from { opacity: 0; transform: scale(0.7); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes fadeUpMulti {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .multiline-track,
+      .multiline-line,
+      .multiline-point,
+      .multiline-year,
+      .multiline-yhint {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  "))
+}
+
+multilineplot_server <- function(id, data_r, style = c("executive", "compact", "minimal"), unit = "") {
+  style <- match.arg(style)
+
+  moduleServer(id, function(input, output, session) {
+    session$onFlushed(function() {
+      session$sendCustomMessage(
+        "measure_container",
+        list(id = session$ns("container"))
+      )
+    }, once = TRUE)
+
+    observeEvent(input$container_size, {
+      width  <- input$container_size$width
+      height <- input$container_size$height
+
+      if (is.null(width) || width < 20) return()
+
+      df <- data_r()
+      req(ncol(df) >= 2)
+
+      years <- as.character(df[[1]])
+      series_names <- names(df)[2:ncol(df)]
+      max_series <- min(6, length(series_names))
+      series_names <- series_names[seq_len(max_series)]
+
+      mat <- as.matrix(df[, series_names, drop = FALSE])
+      suppressWarnings(storage.mode(mat) <- "numeric")
+      if (all(is.na(mat))) return()
+
+      min_val <- min(mat, na.rm = TRUE)
+      max_val <- max(mat, na.rm = TRUE)
+      range_val <- max(max_val - min_val, 1e-9)
+
+      n <- nrow(mat)
+      if (n < 2) return()
+
+      margin_top <- height * 0.14
+      margin_bottom <- height * 0.20
+      margin_side <- width * 0.08
+
+      usable_h <- height - margin_top - margin_bottom
+      usable_w <- width - (margin_side * 2)
+
+      x_seq <- seq(margin_side, margin_side + usable_w, length.out = n)
+
+      colors <- relyens_chart_colors(max_series)
+
+      legend_tags <- lapply(seq_along(series_names), function(i) {
+        tags$span(
+          class = "multiline-legend-item",
+          tags$span(class = "multiline-legend-dot", style = paste0("background:", colors[i], ";")),
+          series_names[i]
+        )
+      })
+      output$legend <- renderUI(tagList(legend_tags))
+
+      output$multilineplot <- renderUI({
+        grid_lines <- c(0, 0.5, 1)
+
+        tags$svg(
+          width = width,
+          height = height,
+          viewBox = paste0("0 0 ", width, " ", height),
+          preserveAspectRatio = "none",
+
+          lapply(grid_lines, function(g) {
+            y <- height - margin_bottom - (usable_h * g)
+            tagList(
+              tags$line(x1 = margin_side, y1 = y, x2 = width - margin_side, y2 = y, class = if (g == 0) "multiline-axis" else "multiline-grid"),
+              if (g != 0) tags$text(x = margin_side - 6, y = y + 3, class = "multiline-yhint", paste0(round(min_val + range_val * g, 1), unit))
+            )
+          }),
+
+          lapply(seq_along(series_names), function(i) {
+            values <- mat[, i]
+            y_seq <- height - margin_bottom - ((values - min_val) / range_val) * usable_h
+            points <- paste(sprintf('%.2f,%.2f', x_seq, y_seq), collapse = ' ')
+
+            tagList(
+              tags$polyline(points = points, class = "multiline-track", style = paste0("stroke:", colors[i], ";")),
+              tags$polyline(points = points, class = "multiline-line", style = paste0("stroke:", colors[i], ";")),
+              lapply(seq_len(n), function(j) {
+                tags$circle(
+                  cx = x_seq[j],
+                  cy = y_seq[j],
+                  r = if (style == "compact") 3.5 else 4.2,
+                  class = "multiline-point",
+                  fill = colors[i],
+                  tags$title(paste0(series_names[i], " • ", years[j], " : ", round(values[j], 1), unit))
+                )
+              })
+            )
+          }),
+
+          lapply(seq_len(n), function(j) {
+            tags$text(
+              x = x_seq[j],
+              y = height - height * 0.04,
+              class = "multiline-year",
+              years[j]
             )
           })
         )
