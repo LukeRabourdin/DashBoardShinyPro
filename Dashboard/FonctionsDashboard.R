@@ -2363,14 +2363,35 @@ france_map_kpi_server <- function(id, data_r) {
       shp
     }
 
+    get_client_dim <- function(axis = c("width", "height")) {
+      axis <- match.arg(axis)
+      out_id <- session$ns("map")
+      key_raw <- paste0("output_", out_id, "_", axis)
+      key_dot <- paste0("output_", gsub("-", ".", out_id, fixed = TRUE), "_", axis)
+
+      val <- session$clientData[[key_raw]]
+      if (!is.numeric(val) || is.na(val)) {
+        val <- session$clientData[[key_dot]]
+      }
+      if (!is.numeric(val) || is.na(val)) {
+        return(NA_real_)
+      }
+      as.numeric(val)
+    }
+
     plot_width <- reactive({
-      w <- session$clientData[[paste0("output_", session$ns("map"), "_width")]]
-      if (!is.numeric(w) || is.na(w) || w < 80) 400 else w
+      w <- get_client_dim("width")
+      if (!is.finite(w) || w < 80) 900 else w
     })
 
     plot_height <- reactive({
-      h <- session$clientData[[paste0("output_", session$ns("map"), "_height")]]
-      if (!is.numeric(h) || is.na(h) || h < 80) 300 else h
+      h <- get_client_dim("height")
+      if (is.finite(h) && h >= 80) {
+        return(h)
+      }
+
+      derived_h <- plot_width() * 0.62
+      max(320, min(900, derived_h))
     })
 
     output$map <- renderPlot(
