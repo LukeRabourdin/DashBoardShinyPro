@@ -492,7 +492,7 @@ search_bar_css <- function() {
 
     .suggestion-item {
       padding: 10px 20px;
-      font-size: 15px;
+      font-size: 11px;
       cursor: pointer;
       transition:
         background-color 0.15s ease,
@@ -1483,9 +1483,9 @@ multilineplot_css <- function(){
       flex-direction: row;
       align-items: center;
       flex-wrap: nowrap;
-      gap: 14px;
-      min-height: 24px;
-      padding: 2px 0 4px;
+      gap: 20px;
+      min-height: 22px;
+      padding: 4px 0 6px;
       overflow-x: auto;
       white-space: nowrap;
     }
@@ -1493,17 +1493,17 @@ multilineplot_css <- function(){
     .multiline-legend-item {
       display: inline-flex;
       align-items: center;
-      gap: 7px;
+      gap: 6px;
       color: #5f7490;
-      font-size: 15px;
+      font-size: 11px;
       font-weight: 500;
       letter-spacing: 0.01em;
       line-height: 1;
     }
 
     .multiline-legend-dot {
-      width: 9px;
-      height: 9px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       display: inline-block;
       box-shadow: 0 0 0 1px rgba(255,255,255,0.70);
