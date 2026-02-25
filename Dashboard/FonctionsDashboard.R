@@ -1483,7 +1483,7 @@ multilineplot_css <- function(){
       flex-direction: row;
       align-items: center;
       flex-wrap: nowrap;
-      gap: 20px;
+      gap: 30px;
       min-height: 22px;
       padding: 4px 0 6px;
       overflow-x: auto;
@@ -1493,7 +1493,8 @@ multilineplot_css <- function(){
     .multiline-legend-item {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+      margin-right: 8px;
       color: #5f7490;
       font-size: 11px;
       font-weight: 500;
