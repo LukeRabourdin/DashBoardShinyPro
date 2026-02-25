@@ -1453,12 +1453,18 @@ multilineplot_ui <- function(id) {
 
   tags$div(
     class = "multilineplot-shell",
-    uiOutput(ns("legend")),
     tags$div(
-      id = ns("container"),
-      class = "multilineplot-container",
-      uiOutput(ns("multilineplot")),
-      tags$div(id = ns("tooltip"), class = "multiline-tooltip")
+      class = "multilineplot-row",
+      tags$div(
+        id = ns("container"),
+        class = "multilineplot-container",
+        uiOutput(ns("multilineplot")),
+        tags$div(id = ns("tooltip"), class = "multiline-tooltip")
+      ),
+      tags$div(
+        class = "multilineplot-legend-side",
+        uiOutput(ns("legend"))
+      )
     )
   )
 }
@@ -1469,32 +1475,49 @@ multilineplot_css <- function(){
       width: 100%;
       height: var(--svg-h);
       min-height: 140px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
     }
 
-    .multilineplot-shell .shiny-html-output {
+    .multilineplot-row {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      gap: 18px;
+    }
+
+    .multilineplot-container{
+      width: 100%;
+      flex: 1 1 auto;
+      min-height: 120px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0.10));
+      position: relative;
+    }
+
+    .multilineplot-legend-side {
+      flex: 0 0 110px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .multilineplot-legend-side .shiny-html-output {
       width: 100%;
     }
 
     .multiline-legend {
       display: flex;
-      flex-direction: row;
-      align-items: center;
-      flex-wrap: nowrap;
-      gap: 30px;
-      min-height: 22px;
-      padding: 4px 0 6px;
-      overflow-x: auto;
-      white-space: nowrap;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      min-height: 24px;
     }
 
     .multiline-legend-item {
       display: inline-flex;
       align-items: center;
-      gap: 12px;
-      margin-right: 8px;
+      gap: 6px;
       color: #5f7490;
       font-size: 11px;
       font-weight: 500;
@@ -1508,15 +1531,6 @@ multilineplot_css <- function(){
       border-radius: 50%;
       display: inline-block;
       box-shadow: 0 0 0 1px rgba(255,255,255,0.70);
-    }
-
-    .multilineplot-container{
-      width: 100%;
-      flex: 1 1 auto;
-      min-height: 120px;
-      border-radius: 12px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0.10));
-      position: relative;
     }
 
     .multiline-tooltip {
