@@ -1030,6 +1030,9 @@ barplot_css <- function(){
     .dribble-bar {
       fill: url(#barGradient);
       transition: transform 0.2s ease, filter 0.2s ease;
+      transform-box: fill-box;
+      transform-origin: center bottom;
+      animation: barGrow 520ms cubic-bezier(.2,.8,.2,1);
     }
     .dribble-bar:hover {
       filter: brightness(1.05) saturate(1.1);
@@ -1057,6 +1060,21 @@ barplot_css <- function(){
       text-anchor: middle;
       dominant-baseline: middle;
       font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      animation: fadeUp 480ms ease;
+    }
+
+    .dribble-label {
+      animation: fadeUp 480ms ease;
+    }
+
+    @keyframes barGrow {
+      from { transform: scaleY(0.05); opacity: 0.2; }
+      to   { transform: scaleY(1); opacity: 1; }
+    }
+
+    @keyframes fadeUp {
+      from { transform: translateY(5px); opacity: 0; }
+      to   { transform: translateY(0); opacity: 1; }
     }
   "))
 }
@@ -1206,6 +1224,7 @@ lineplot_css <- function(){
     .line-area {
       fill: url(#lineAreaGradient);
       opacity: 0.9;
+      animation: areaReveal 680ms ease-out;
     }
 
     .line-trend {
@@ -1214,6 +1233,9 @@ lineplot_css <- function(){
       stroke-width: 3;
       stroke-linecap: round;
       stroke-linejoin: round;
+      stroke-dasharray: 1200;
+      stroke-dashoffset: 1200;
+      animation: lineDraw 900ms cubic-bezier(.2,.8,.2,1) forwards;
     }
 
     .line-point {
@@ -1221,6 +1243,7 @@ lineplot_css <- function(){
       stroke: #116AC4;
       stroke-width: 2;
       transition: fill 0.12s ease, stroke-width 0.12s ease;
+      animation: pointPop 560ms cubic-bezier(.2,.8,.2,1);
     }
 
     .line-point:hover {
@@ -1245,6 +1268,35 @@ lineplot_css <- function(){
       fill: #7a8ca3;
       text-anchor: middle;
       font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      animation: fadeUp 480ms ease;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .dribble-bar, .dribble-label, .dribble-year,
+      .line-area, .line-trend, .line-point, .line-value, .line-year,
+      .stack-bar, .stack-seg, .stack-total,
+      .group-bar, .group-year {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+
+    .line-value {
+      animation: fadeUp 480ms ease;
+    }
+
+    @keyframes lineDraw {
+      to { stroke-dashoffset: 0; }
+    }
+
+    @keyframes pointPop {
+      from { opacity: 0; transform: scale(0.75); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes areaReveal {
+      from { opacity: 0; }
+      to { opacity: 0.9; }
     }
   "))
 }
@@ -1509,7 +1561,8 @@ stackedBar_html_css <- function() {
   position:relative;
   flex-direction:column-reverse;
   width:100%;
-     
+  transform-origin: center bottom;
+  animation: stackGrow 620ms cubic-bezier(.2,.8,.2,1);
 }
 
 
@@ -1522,6 +1575,7 @@ stackedBar_html_css <- function() {
   font-weight: 700;
   color: white;
   transition: transform .2s ease;
+  animation: fadeInSeg 420ms ease;
 }
 
 
@@ -1560,6 +1614,17 @@ stackedBar_html_css <- function() {
   font-size: 12px;
   font-weight: 700;
   color: #1f2d3d;
+  animation: fadeUp 520ms ease;
+}
+
+@keyframes stackGrow {
+  from { transform: scaleY(0.05); opacity: 0.25; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+
+@keyframes fadeInSeg {
+  from { opacity: 0.1; }
+  to { opacity: 1; }
 }
 
 /* ============================= */
@@ -1958,6 +2023,8 @@ groupBar_html_css <- function() {
   font-weight:600;
   color:white;
   transition:transform .2s ease;
+  transform-origin: center bottom;
+  animation: groupGrow 560ms cubic-bezier(.2,.8,.2,1);
 }
 
 .group-bar:hover{
@@ -1971,6 +2038,12 @@ groupBar_html_css <- function() {
   font-size:11px;
   color:#7a8ca3;
   text-align:center;
+  animation: fadeUp 500ms ease;
+}
+
+@keyframes groupGrow {
+  from { transform: scaleY(0.08); opacity: 0.25; }
+  to { transform: scaleY(1); opacity: 1; }
 }
 
 /* ============================= */
