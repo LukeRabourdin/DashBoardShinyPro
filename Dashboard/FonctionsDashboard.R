@@ -847,6 +847,43 @@ create_multilineplot_card_server <- function(id, data_r, style = c("executive", 
   multilineplot_server(id = id, data_r = data_r, style = style, unit = unit)
 }
 
+create_special_kpi_card <- function(
+    id,
+    values_r,
+    compare_r,
+    style = c("executive", "compact", "minimal"),
+    scale = 1.02,
+    title = "LM/LD - En cours",
+    subtitle = "KPI avancé",
+    size = NULL,
+    span = NULL
+) {
+  style <- match.arg(style)
+
+  defaults <- switch(
+    style,
+    executive = list(size = "large", span = "span2"),
+    compact   = list(size = "normal", span = "span2"),
+    minimal   = list(size = "normal", span = "span1")
+  )
+
+  if (is.null(size)) size <- defaults$size
+  if (is.null(span)) span <- defaults$span
+
+  ui_card(
+    title = title,
+    subtitle = subtitle,
+    size = size,
+    span = span,
+    special_kpi_ui(id),
+    scale = scale
+  )
+}
+
+create_special_kpi_card_server <- function(id, values_r, compare_r, unit = "€") {
+  special_kpi_server(id = id, values_r = values_r, compare_r = compare_r, unit = unit)
+}
+
 create_groupbar_card <- function(
     id,
     data_r,
@@ -1444,6 +1481,209 @@ lineplot_server <- function(id, data_r, style = c("executive", "compact", "minim
           })
         )
       })
+    })
+  })
+}
+
+special_kpi_ui <- function(id) {
+  ns <- NS(id)
+
+  tags$div(
+    class = "special-kpi-wrap",
+    uiOutput(ns("kpi_top")),
+    uiOutput(ns("kpi_bottom"))
+  )
+}
+
+special_kpi_css <- function() {
+  tags$style(HTML("
+    .special-kpi-wrap {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .special-kpi-panel {
+      border: 1px solid rgba(185, 198, 214, 0.55);
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.38));
+      overflow: hidden;
+    }
+
+    .special-kpi-panel table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      color: #263c56;
+    }
+
+    .special-kpi-panel th,
+    .special-kpi-panel td {
+      padding: 7px 10px;
+      border-bottom: 1px solid rgba(185, 198, 214, 0.35);
+      vertical-align: middle;
+    }
+
+    .special-kpi-panel tr:last-child td { border-bottom: none; }
+
+    .special-kpi-panel thead th {
+      background: rgba(255,255,255,0.55);
+      color: #223b57;
+      font-weight: 600;
+      text-align: right;
+    }
+
+    .special-kpi-panel thead th:first-child,
+    .special-kpi-panel tbody td:first-child {
+      text-align: left;
+      font-weight: 500;
+      color: #1f334d;
+      min-width: 120px;
+    }
+
+    .special-kpi-panel tbody td { text-align: right; }
+
+    .special-kpi-variation {
+      color: #0d47cf;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .special-kpi-subtitle {
+      padding: 10px 12px 0;
+      color: #233c59;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .special-kpi-spark svg {
+      display: block;
+      margin: 0 auto;
+    }
+
+    .special-kpi-spark polyline {
+      fill: none;
+      stroke: #2f62f3;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .special-kpi-spark line {
+      stroke: rgba(47,98,243,0.22);
+      stroke-width: 1;
+    }
+  "))
+}
+
+special_kpi_server <- function(id, values_r, compare_r, unit = "€") {
+  moduleServer(id, function(input, output, session) {
+
+    format_num <- function(x, suffix = "") {
+      ifelse(
+        is.na(x),
+        "-",
+        paste0(format(round(x, 0), big.mark = " ", trim = TRUE), suffix)
+      )
+    }
+
+    annual_variation <- function(v) {
+      v <- as.numeric(v)
+      v <- v[is.finite(v)]
+      if (length(v) < 2 || v[1] <= 0) return(NA_real_)
+      ( (v[length(v)] / v[1])^(1/(length(v)-1)) - 1 ) * 100
+    }
+
+    sparkline_svg <- function(v) {
+      v <- as.numeric(v)
+      if (length(v) < 2 || all(!is.finite(v))) return(tags$span("-"))
+
+      xs <- seq(3, 47, length.out = length(v))
+      mn <- min(v, na.rm = TRUE)
+      mx <- max(v, na.rm = TRUE)
+      rg <- ifelse(abs(mx - mn) < 1e-9, 1, (mx - mn))
+      ys <- 17 - ((v - mn) / rg) * 14
+      pts <- paste(sprintf('%.2f,%.2f', xs, ys), collapse = ' ')
+
+      tags$svg(
+        width = 54, height = 20, viewBox = "0 0 54 20",
+        tags$line(x1 = 3, y1 = 17, x2 = 51, y2 = 17),
+        tags$polyline(points = pts)
+      )
+    }
+
+    output$kpi_top <- renderUI({
+      df <- values_r()
+      req(is.data.frame(df), ncol(df) >= 3)
+
+      labels <- as.character(df[[1]])
+      year_cols <- names(df)[2:ncol(df)]
+
+      rows <- lapply(seq_len(nrow(df)), function(i) {
+        vals <- as.numeric(df[i, year_cols, drop = TRUE])
+        var <- annual_variation(vals)
+
+        tagList(
+          tags$tr(
+            tags$td(labels[i]),
+            lapply(vals, function(v) tags$td(format_num(v, unit))),
+            tags$td(class = "special-kpi-spark", sparkline_svg(vals)),
+            tags$td(class = "special-kpi-variation", ifelse(is.na(var), "-", paste0(sprintf('%.1f', var), " % / an")))
+          )
+        )
+      })
+
+      tags$div(
+        class = "special-kpi-panel",
+        tags$table(
+          tags$thead(
+            tags$tr(
+              tags$th(""),
+              lapply(year_cols, tags$th),
+              tags$th(""),
+              tags$th("Variation")
+            )
+          ),
+          tags$tbody(rows)
+        )
+      )
+    })
+
+    output$kpi_bottom <- renderUI({
+      df <- compare_r()
+      req(is.data.frame(df), ncol(df) >= 3)
+
+      labels <- as.character(df[[1]])
+      c1 <- as.numeric(df[[2]])
+      c2 <- as.numeric(df[[3]])
+      diff <- ifelse(is.na(c2) | abs(c2) < 1e-9, NA_real_, ((c1 - c2) / c2) * 100)
+
+      rows <- lapply(seq_len(nrow(df)), function(i) {
+        tags$tr(
+          tags$td(labels[i]),
+          tags$td(format(round(c1[i], 1), nsmall = 1, trim = TRUE)),
+          tags$td(format(round(c2[i], 1), nsmall = 1, trim = TRUE)),
+          tags$td(class = "special-kpi-variation", ifelse(is.na(diff[i]), "-", paste0(sprintf('%.1f', diff[i]), " %")))
+        )
+      })
+
+      tags$div(
+        class = "special-kpi-panel",
+        tags$div(class = "special-kpi-subtitle", "Comparaison au groupe"),
+        tags$table(
+          tags$thead(
+            tags$tr(
+              tags$th(""),
+              tags$th("Moyenne collectivité"),
+              tags$th("Moyenne groupe"),
+              tags$th("Différence")
+            )
+          ),
+          tags$tbody(rows)
+        )
+      )
     })
   })
 }

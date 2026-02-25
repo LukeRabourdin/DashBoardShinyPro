@@ -127,6 +127,15 @@ content_map <- list(
         size = "large",
         span = "span2"
       ),
+      create_special_kpi_card(
+        id = "kpi_special_1",
+        values_r = NULL,
+        compare_r = NULL,
+        style = "executive",
+        scale = 1.00,
+        title = "LM/LD - En cours",
+        subtitle = "KPI spécial"
+      ),
       create_groupbar_card(
         id = "BarplotGrouped1",
         data_r = NULL,
@@ -162,6 +171,7 @@ ui <- fluidPage(
   barplot_css(),
   lineplot_css(),
   multilineplot_css(),
+  special_kpi_css(),
   ui_card_css(),
   container_size_js(),
   #stackedBar_css(),
@@ -249,6 +259,32 @@ server<-function(input, output, session) {
     data_r = multiline_data,
     style = "executive",
     unit = "%"
+  )
+
+  kpi_values_data <- reactive({
+    data.frame(
+      metric = c("Coût total", "Durée Totale", "Coût / sinistre", "Durée / sinistre"),
+      `2021` = c(1747204, 33962, 12847, 250),
+      `2022` = c(2166413, 48633, 11463, 257),
+      `2023` = c(2763360, 60736, 11759, 258),
+      `2024` = c(2772580, 64442, 12660, 294),
+      check.names = FALSE
+    )
+  })
+
+  kpi_compare_data <- reactive({
+    data.frame(
+      metric = c("Coût total", "Durée Totale", "Coût / sinistre", "Durée / sinistre"),
+      collectivite = c(36461.3, 801.9, 12182.2, 264.9),
+      groupe = c(33762.4, 1030.9, 9612.5, 243.3)
+    )
+  })
+
+  create_special_kpi_card_server(
+    id = "kpi_special_1",
+    values_r = kpi_values_data,
+    compare_r = kpi_compare_data,
+    unit = " €"
   )
   
   stack_data <- reactive({
