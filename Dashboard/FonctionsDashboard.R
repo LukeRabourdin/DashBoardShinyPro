@@ -2084,13 +2084,13 @@ global_score_kpi_css <- function() {
       align-items: center;
       color: #60758d;
       font-size: 9px;
-      font-weight: 600;
-      margin-bottom: 4px;
+      font-weight: 700;
+      margin-bottom: 2px;
     }
 
     .global-score-kpi-axis {
       position: relative;
-      height: 18px;
+      height: 26px;
       display: flex;
       align-items: center;
     }
@@ -2101,6 +2101,25 @@ global_score_kpi_css <- function() {
       background: #7d90a6;
       border-radius: 2px;
       opacity: 0.75;
+    }
+
+
+    .global-score-kpi-axis-scale {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 1px;
+      display: grid;
+      grid-template-columns: repeat(10, minmax(0, 1fr));
+      font-size: 8px;
+      font-weight: 600;
+      color: #7086a0;
+      pointer-events: none;
+    }
+
+    .global-score-kpi-axis-scale span {
+      text-align: center;
+      line-height: 1;
     }
 
     .global-score-kpi-axis-marker {
@@ -2166,9 +2185,10 @@ global_score_kpi_server <- function(id, data_r, unit = "/10") {
         tags$div(class = "global-score-kpi-years", tagList(year_items)),
         tags$div(
           class = "global-score-kpi-axis-wrap",
-          tags$div(class = "global-score-kpi-axis-head", tags$span("Repère de position"), tags$span("Échelle fixe 1 à 10")),
+          tags$div(class = "global-score-kpi-axis-head", tags$span("1"), tags$span("10")),
           tags$div(
             class = "global-score-kpi-axis",
+            tags$div(class = "global-score-kpi-axis-scale", lapply(1:10, function(i) tags$span(i))),
             tags$div(class = "global-score-kpi-axis-line"),
             tags$div(class = "global-score-kpi-axis-marker", style = paste0("left:", sprintf("%.1f", marker_left), "%;"))
           ),
