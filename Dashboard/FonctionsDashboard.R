@@ -1704,10 +1704,28 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
 
       min_val <- min(mat, na.rm = TRUE)
       max_val <- max(mat, na.rm = TRUE)
-      range_val <- max(max_val - min_val, 1e-9)
 
       n <- nrow(mat)
       if (n < 2) return()
+
+      # Axe Y : 5 lignes avec arrondis (multiples de 10) selon la plage observée
+      raw_min <- min_val
+      raw_max <- max_val
+      if (!is.finite(raw_min) || !is.finite(raw_max)) return()
+      if (raw_min == raw_max) raw_max <- raw_min + 10
+
+      approx_step <- (raw_max - raw_min) / 4
+      step <- max(10, ceiling(approx_step / 10) * 10)
+
+      axis_max <- ceiling(raw_max / step) * step
+      axis_min <- axis_max - (step * 4)
+      while (axis_min > raw_min) {
+        axis_min <- axis_min - step
+        axis_max <- axis_max - step
+      }
+
+      axis_ticks <- seq(axis_min, axis_max, by = step)
+      axis_range <- max(axis_max - axis_min, 1e-9)
 
       margin_top <- height * 0.14
       margin_bottom <- height * 0.20
@@ -1730,8 +1748,6 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
       output$legend <- renderUI(tags$div(class = "multiline-legend", tagList(legend_tags)))
 
       output$multilineplot <- renderUI({
-        grid_lines <- c(0, 0.5, 1)
-
         tooltip_js <- sprintf("(function(){
   var container = document.getElementById('%s');
   var tooltip = document.getElementById('%s');
@@ -1793,28 +1809,35 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
             viewBox = paste0("0 0 ", width, " ", height),
             preserveAspectRatio = "none",
 
-            lapply(grid_lines, function(g) {
-              y <- height - margin_bottom - (usable_h * g)
+            lapply(seq_along(axis_ticks), function(i) {
+              tick <- axis_ticks[i]
+              y <- height - margin_bottom - ((tick - axis_min) / axis_range) * usable_h
+              tick_label <- if (abs(tick - round(tick)) < 1e-9) {
+                paste0(sprintf("%.0f", tick), unit)
+              } else {
+                paste0(sprintf("%.1f", tick), unit)
+              }
+
               tagList(
                 tags$line(
                   x1 = margin_side,
                   y1 = y,
                   x2 = width - margin_side,
                   y2 = y,
-                  class = if (g == 0) "multiline-axis" else "multiline-grid"
+                  class = if (i == 1) "multiline-axis" else "multiline-grid"
                 ),
-                if (g != 0) tags$text(
+                tags$text(
                   x = margin_side - 6,
                   y = y + 3,
                   class = "multiline-yhint",
-                  paste0(round(min_val + range_val * g, 1), unit)
+                  tick_label
                 )
               )
             }),
 
             lapply(seq_along(series_names), function(i) {
               values <- mat[, i]
-              y_seq <- height - margin_bottom - ((values - min_val) / range_val) * usable_h
+              y_seq <- height - margin_bottom - ((values - axis_min) / axis_range) * usable_h
               points <- paste(sprintf('%.2f,%.2f', x_seq, y_seq), collapse = ' ')
 
               tagList(
