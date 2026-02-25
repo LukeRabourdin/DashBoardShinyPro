@@ -1453,7 +1453,7 @@ multilineplot_ui <- function(id) {
 
   tags$div(
     class = "multilineplot-shell",
-    tags$div(class = "multiline-legend-caption", "Légende"),
+    tags$div(class = "multiline-legend-caption", "Légende séries"),
     uiOutput(ns("legend")),
     tags$div(
       id = ns("container"),
@@ -1489,37 +1489,31 @@ multilineplot_css <- function(){
     }
 
     .multiline-legend {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
       min-height: 24px;
+      padding: 2px 0 4px;
     }
 
     .multiline-legend-item {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(17,106,196,0.16);
-      background: rgba(255,255,255,0.65);
-      color: #304863;
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    .multiline-legend-value {
-      color: #5e7390;
-      font-weight: 700;
-      margin-left: 2px;
+      gap: 7px;
+      color: #5f7490;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      line-height: 1;
     }
 
     .multiline-legend-dot {
-      width: 8px;
-      height: 8px;
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
       display: inline-block;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.70);
     }
 
     .multilineplot-container{
@@ -1715,14 +1709,10 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
       colors <- relyens_chart_colors(max_series)
 
       legend_tags <- lapply(seq_along(series_names), function(i) {
-        last_value <- mat[n, i]
-        value_text <- if (is.na(last_value)) "NA" else paste0(round(last_value, 1), unit)
-
         tags$span(
           class = "multiline-legend-item",
           tags$span(class = "multiline-legend-dot", style = paste0("background:", colors[i], ";")),
-          tags$span(class = "multiline-legend-name", series_names[i]),
-          tags$span(class = "multiline-legend-value", value_text)
+          tags$span(class = "multiline-legend-name", series_names[i])
         )
       })
       output$legend <- renderUI(tags$div(class = "multiline-legend", tagList(legend_tags)))
