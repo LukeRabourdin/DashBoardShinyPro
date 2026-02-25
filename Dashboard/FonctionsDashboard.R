@@ -492,7 +492,7 @@ search_bar_css <- function() {
 
     .suggestion-item {
       padding: 10px 20px;
-      font-size: 11px;
+      font-size: 10px;
       cursor: pointer;
       transition:
         background-color 0.15s ease,
@@ -1503,25 +1503,29 @@ special_kpi_css <- function() {
       min-height: 0;
       display: flex;
       flex-direction: column;
-      gap: 18px;
-      justify-content: flex-start;
-      overflow: auto;
-      padding-right: 2px;
+      gap: 10px;
+      justify-content: space-between;
+      overflow: hidden;
       box-sizing: border-box;
+    }
+
+    .special-kpi-wrap > .shiny-html-output {
+      flex: 1 1 0;
+      min-height: 0;
+      display: flex;
     }
 
     .special-kpi-panel {
       width: 100%;
       max-width: 100%;
+      height: 100%;
       border: 1px solid rgba(185, 198, 214, 0.55);
       border-radius: 12px;
       background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.38));
       overflow: hidden;
       box-sizing: border-box;
-    }
-
-    .special-kpi-panel + .special-kpi-panel {
-      margin-top: 2px;
+      display: flex;
+      flex-direction: column;
     }
 
     .special-kpi-panel table {
@@ -1529,14 +1533,14 @@ special_kpi_css <- function() {
       max-width: 100%;
       table-layout: fixed;
       border-collapse: collapse;
-      font-size: 11px;
+      font-size: 10px;
       color: #263c56;
       margin: 0 auto;
     }
 
     .special-kpi-panel th,
     .special-kpi-panel td {
-      padding: 7px 8px;
+      padding: 5px 7px;
       border-bottom: 1px solid rgba(185, 198, 214, 0.35);
       vertical-align: middle;
       white-space: nowrap;
@@ -1551,6 +1555,7 @@ special_kpi_css <- function() {
       color: #223b57;
       font-weight: 600;
       text-align: right;
+      font-size: 10px;
     }
 
     .special-kpi-panel thead th:first-child,
@@ -1571,10 +1576,10 @@ special_kpi_css <- function() {
     }
 
     .special-kpi-subtitle {
-      padding: 10px 12px 0;
+      padding: 7px 10px 0;
       color: #233c59;
       font-weight: 600;
-      font-size: 13px;
+      font-size: 11px;
     }
 
     .special-kpi-spark svg {
