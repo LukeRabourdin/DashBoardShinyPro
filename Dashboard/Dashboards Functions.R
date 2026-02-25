@@ -42,7 +42,11 @@ emoji_path <- if (file.exists("Dashboard/Emojis")) {
 
 addResourcePath("emojis", emoji_path)
 
-departements_geojson <- if (file.exists("Dashboard/departements.json")) {
+departements_geojson <- if (file.exists("Dashboard/departements.geojson")) {
+  "Dashboard/departements.geojson"
+} else if (file.exists("departements.geojson")) {
+  "departements.geojson"
+} else if (file.exists("Dashboard/departements.json")) {
   "Dashboard/departements.json"
 } else if (file.exists("departements.json")) {
   "departements.json"
