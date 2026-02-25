@@ -2025,117 +2025,98 @@ global_score_kpi_css <- function() {
     }
 
     .global-score-kpi-panel {
-      border: 1px solid rgba(185, 198, 214, 0.50);
-      border-radius: 14px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(248,252,255,0.60));
-      padding: 12px 14px 10px;
+      padding: 4px 2px;
       display: flex;
       flex-direction: column;
       gap: 10px;
-      box-shadow: 0 10px 24px rgba(47, 98, 243, 0.08);
-    }
-
-    .global-score-kpi-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .global-score-kpi-badge {
-      display: inline-flex;
-      align-items: baseline;
-      gap: 2px;
-      color: #1f334d;
-      font-weight: 700;
-      font-size: 22px;
-      line-height: 1;
-    }
-
-    .global-score-kpi-badge small {
-      font-size: 12px;
-      color: #6d8096;
-      font-weight: 600;
-    }
-
-    .global-score-kpi-pill {
-      border-radius: 999px;
-      padding: 4px 9px;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: .02em;
-      border: 1px solid rgba(47,98,243,0.18);
-      color: #0d47cf;
-      background: rgba(47,98,243,0.09);
-      white-space: nowrap;
     }
 
     .global-score-kpi-years {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
+      gap: 10px;
     }
 
     .global-score-kpi-year {
       border-radius: 10px;
-      border: 1px solid rgba(185, 198, 214, 0.40);
-      background: rgba(255,255,255,0.72);
-      padding: 7px 6px;
+      border: 1px solid rgba(185, 198, 214, 0.38);
+      background: rgba(255,255,255,0.38);
+      padding: 8px 6px;
       text-align: center;
       min-width: 0;
+      transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+
+    .global-score-kpi-year:hover {
+      transform: translateY(-1px);
+      border-color: rgba(107, 130, 158, 0.55);
     }
 
     .global-score-kpi-year .val {
       color: #1f334d;
-      font-weight: 700;
+      font-weight: 650;
       font-size: 15px;
       line-height: 1.1;
     }
 
     .global-score-kpi-year .lab {
-      margin-top: 2px;
+      margin-top: 3px;
       color: #6d8096;
       font-size: 10px;
       font-weight: 600;
+      letter-spacing: .02em;
     }
 
-    .global-score-kpi-track {
-      margin-top: 2px;
+    .global-score-kpi-year.is-latest {
+      border: 2px solid rgba(47, 98, 243, 0.82);
+      background: linear-gradient(180deg, rgba(239, 246, 255, 0.82), rgba(232, 241, 255, 0.64));
+      box-shadow: 0 6px 16px rgba(47, 98, 243, 0.16);
     }
 
-    .global-score-kpi-range {
+    .global-score-kpi-axis-wrap {
+      margin-top: 3px;
+      padding: 2px 2px 0;
+    }
+
+    .global-score-kpi-axis-head {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       color: #60758d;
       font-size: 9px;
       font-weight: 600;
-      margin-bottom: 2px;
+      margin-bottom: 4px;
     }
 
-    .global-score-kpi-line {
+    .global-score-kpi-axis {
       position: relative;
-      height: 7px;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #9eb3cb 0%, #6f8eb4 40%, #2f62f3 100%);
-      opacity: 0.55;
+      height: 18px;
+      display: flex;
+      align-items: center;
     }
 
-    .global-score-kpi-marker {
+    .global-score-kpi-axis-line {
+      width: 100%;
+      height: 2px;
+      background: #7d90a6;
+      border-radius: 2px;
+      opacity: 0.75;
+    }
+
+    .global-score-kpi-axis-marker {
       position: absolute;
       top: 50%;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
       border: 2px solid #ffffff;
       background: #2f62f3;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 3px 8px rgba(47,98,243,0.35);
-      transition: left .35s ease;
+      transform: translate(-50%, -50%) rotate(45deg);
+      box-shadow: 0 2px 8px rgba(47,98,243,0.3);
     }
 
-    .global-score-kpi-labels {
-      margin-top: 5px;
+    .global-score-kpi-axis-labels {
+      margin-top: 4px;
       display: flex;
       justify-content: space-between;
       gap: 10px;
@@ -2146,7 +2127,6 @@ global_score_kpi_css <- function() {
 
     @media (max-width: 1000px) {
       .global-score-kpi-years { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .global-score-kpi-badge { font-size: 19px; }
     }
   "))
 }
@@ -2167,24 +2147,15 @@ global_score_kpi_server <- function(id, data_r, unit = "/10") {
       n <- min(4, length(values))
       labels <- tail(labels, n)
       values <- tail(values, n)
+      latest_idx <- length(values)
 
-      latest <- values[length(values)]
-      trend <- if (length(values) >= 2) latest - values[1] else 0
-      trend_txt <- if (is.na(trend)) {
-        "Tendance non disponible"
-      } else if (trend > 0) {
-        paste0("↗ +", sprintf("%.1f", trend), unit, " vs ", labels[1])
-      } else if (trend < 0) {
-        paste0("↘ ", sprintf("%.1f", trend), unit, " vs ", labels[1])
-      } else {
-        paste0("→ stable vs ", labels[1])
-      }
-
+      latest <- values[latest_idx]
       marker_left <- max(0, min(100, (latest / 10) * 100))
 
       year_items <- lapply(seq_along(values), function(i) {
+        cls <- if (i == latest_idx) "global-score-kpi-year is-latest" else "global-score-kpi-year"
         tags$div(
-          class = "global-score-kpi-year",
+          class = cls,
           tags$div(class = "val", paste0(sprintf("%.1f", values[i]), unit)),
           tags$div(class = "lab", labels[i])
         )
@@ -2192,21 +2163,17 @@ global_score_kpi_server <- function(id, data_r, unit = "/10") {
 
       tags$div(
         class = "global-score-kpi-panel",
-        tags$div(
-          class = "global-score-kpi-head",
-          tags$div(class = "global-score-kpi-badge", sprintf("%.1f", latest), tags$small(unit)),
-          tags$div(class = "global-score-kpi-pill", trend_txt)
-        ),
         tags$div(class = "global-score-kpi-years", tagList(year_items)),
         tags$div(
-          class = "global-score-kpi-track",
-          tags$div(class = "global-score-kpi-range", tags$span("1/10"), tags$span("10/10")),
+          class = "global-score-kpi-axis-wrap",
+          tags$div(class = "global-score-kpi-axis-head", tags$span("Repère de position"), tags$span("Échelle fixe 1 à 10")),
           tags$div(
-            class = "global-score-kpi-line",
-            tags$div(class = "global-score-kpi-marker", style = paste0("left:", sprintf("%.1f", marker_left), "%;"))
+            class = "global-score-kpi-axis",
+            tags$div(class = "global-score-kpi-axis-line"),
+            tags$div(class = "global-score-kpi-axis-marker", style = paste0("left:", sprintf("%.1f", marker_left), "%;"))
           ),
           tags$div(
-            class = "global-score-kpi-labels",
+            class = "global-score-kpi-axis-labels",
             tags$span("Moins sinistré du groupe"),
             tags$span("Plus sinistré du groupe")
           )
