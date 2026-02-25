@@ -113,11 +113,11 @@ content_map <- list(
         id = "france_map_kpi_1",
         data_r = NULL,
         style = "executive",
-        scale = 1.02,
+        scale = 1.18,
         title = "Comparaison géographique",
         subtitle = "Département cible vs limitrophes",
         size = "large",
-        span = "span2"
+        span = "span3"
       ),
       # Exemples du pipeline factory "R-like" : create_barplot_card(...)
       create_barplot_card(
