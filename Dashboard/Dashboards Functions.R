@@ -234,6 +234,7 @@ server<-function(input, output, session) {
 
   summary_kpi_data <- reactive({
     key <- selected_key()
+    key_value <- if (length(key) >= 1 && !is.na(key[[1]]) && nzchar(key[[1]])) key[[1]] else "Sélection non renseignée"
 
     fields <- data.frame(
       champ = c(
@@ -241,7 +242,7 @@ server<-function(input, output, session) {
         "Sinistralité", "Budget", "Ancienneté", "Exposition", "Niveau de risque"
       ),
       valeur = c(
-        key,
+        key_value,
         "12 480 agents",
         "38",
         "Île-de-France",
