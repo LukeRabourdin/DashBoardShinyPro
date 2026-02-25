@@ -650,7 +650,7 @@ search_bar_js <- function(id) {
 #         UI CARD
 ##############################
 
-card_size_tokens <- function(size = c("small", "normal", "large"), scale = 1) {
+card_size_tokens <- function(size = c("small", "normal", "large", "xlarge"), scale = 1) {
   size <- match.arg(size)
 
   if (is.list(scale)) {
@@ -667,14 +667,16 @@ card_size_tokens <- function(size = c("small", "normal", "large"), scale = 1) {
     size,
     small = 260,
     normal = 340,
-    large = 440
+    large = 440,
+    xlarge = 560
   )
 
   base_pad <- switch(
     size,
     small = 16,
     normal = 20,
-    large = 22
+    large = 22,
+    xlarge = 24
   )
 
   list(
@@ -686,7 +688,7 @@ card_size_tokens <- function(size = c("small", "normal", "large"), scale = 1) {
 ui_card <- function(
     title = NULL,
     subtitle = NULL,
-    size = c("small", "normal", "large"),
+    size = c("small", "normal", "large", "xlarge"),
     span = c("span1", "span2", "span3", "spanfull"),
     ...,
     scale = 1

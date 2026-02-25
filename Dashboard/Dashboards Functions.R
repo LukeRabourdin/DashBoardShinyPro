@@ -116,7 +116,7 @@ content_map <- list(
         scale = 1.18,
         title = "Comparaison géographique",
         subtitle = "Département cible vs limitrophes",
-        size = "large",
+        size = "xlarge",
         span = "span3"
       ),
       # Exemples du pipeline factory "R-like" : create_barplot_card(...)
