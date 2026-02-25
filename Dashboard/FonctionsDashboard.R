@@ -1208,16 +1208,6 @@ lineplot_css <- function(){
       opacity: 0.9;
     }
 
-    .line-trend-shadow {
-      fill: none;
-      stroke: rgba(17,106,196,0.40);
-      stroke-width: 9;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      filter: url(#lineGlow);
-      opacity: 0.75;
-    }
-
     .line-trend {
       fill: none;
       stroke: #116AC4;
@@ -1314,15 +1304,6 @@ lineplot_server <- function(id, data_r, style = c("executive", "compact", "minim
               x1 = "0%", y1 = "0%", x2 = "0%", y2 = "100%",
               tags$stop(offset = "0%", `stop-color` = "rgba(46,183,243,0.36)"),
               tags$stop(offset = "100%", `stop-color` = "rgba(46,183,243,0.00)")
-            ),
-            tags$filter(
-              id = "lineGlow",
-              x = "-20%", y = "-20%", width = "140%", height = "140%",
-              tags$feGaussianBlur(stdDeviation = "3", result = "blur"),
-              tags$feMerge(
-                tags$feMergeNode(`in` = "blur"),
-                tags$feMergeNode(`in` = "SourceGraphic")
-              )
             )
           ),
           tags$line(
@@ -1347,7 +1328,6 @@ lineplot_server <- function(id, data_r, style = c("executive", "compact", "minim
             class = "line-grid"
           ),
           tags$polygon(points = area_points, class = "line-area"),
-          tags$polyline(points = line_points, class = "line-trend-shadow"),
           tags$polyline(points = line_points, class = "line-trend"),
           lapply(seq_len(n), function(i) {
             tagList(
