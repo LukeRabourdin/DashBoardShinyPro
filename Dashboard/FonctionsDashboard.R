@@ -1454,7 +1454,7 @@ multilineplot_ui <- function(id) {
   tags$div(
     class = "multilineplot-shell",
     tags$div(class = "multiline-legend-caption", "Légende"),
-    tags$div(id = ns("legend"), class = "multiline-legend"),
+    uiOutput(ns("legend")),
     tags$div(
       id = ns("container"),
       class = "multilineplot-container",
@@ -1484,6 +1484,10 @@ multilineplot_css <- function(){
       margin-bottom: -4px;
     }
 
+    .multilineplot-shell .shiny-html-output {
+      width: 100%;
+    }
+
     .multiline-legend {
       display: flex;
       align-items: center;
@@ -1503,6 +1507,12 @@ multilineplot_css <- function(){
       color: #304863;
       font-size: 11px;
       font-weight: 600;
+    }
+
+    .multiline-legend-value {
+      color: #5e7390;
+      font-weight: 700;
+      margin-left: 2px;
     }
 
     .multiline-legend-dot {
@@ -1705,13 +1715,17 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
       colors <- relyens_chart_colors(max_series)
 
       legend_tags <- lapply(seq_along(series_names), function(i) {
+        last_value <- mat[n, i]
+        value_text <- if (is.na(last_value)) "NA" else paste0(round(last_value, 1), unit)
+
         tags$span(
           class = "multiline-legend-item",
           tags$span(class = "multiline-legend-dot", style = paste0("background:", colors[i], ";")),
-          series_names[i]
+          tags$span(class = "multiline-legend-name", series_names[i]),
+          tags$span(class = "multiline-legend-value", value_text)
         )
       })
-      output$legend <- renderUI(tagList(legend_tags))
+      output$legend <- renderUI(tags$div(class = "multiline-legend", tagList(legend_tags)))
 
       output$multilineplot <- renderUI({
         grid_lines <- c(0, 0.5, 1)
