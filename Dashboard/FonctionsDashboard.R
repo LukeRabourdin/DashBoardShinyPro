@@ -1320,8 +1320,8 @@ lineplot_server <- function(id, data_r, style = c("executive", "compact", "minim
               x = "-20%", y = "-20%", width = "140%", height = "140%",
               tags$feGaussianBlur(stdDeviation = "3", result = "blur"),
               tags$feMerge(
-                tags$feMergeNode(in = "blur"),
-                tags$feMergeNode(in = "SourceGraphic")
+                tags$feMergeNode(`in` = "blur"),
+                tags$feMergeNode(`in` = "SourceGraphic")
               )
             )
           ),
