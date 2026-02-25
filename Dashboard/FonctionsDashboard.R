@@ -1456,14 +1456,14 @@ multilineplot_ui <- function(id) {
     tags$div(
       class = "multilineplot-row",
       tags$div(
+        class = "multilineplot-legend-side",
+        uiOutput(ns("legend"))
+      ),
+      tags$div(
         id = ns("container"),
         class = "multilineplot-container",
         uiOutput(ns("multilineplot")),
         tags$div(id = ns("tooltip"), class = "multiline-tooltip")
-      ),
-      tags$div(
-        class = "multilineplot-legend-side",
-        uiOutput(ns("legend"))
       )
     )
   )
@@ -1498,8 +1498,11 @@ multilineplot_css <- function(){
     .multilineplot-legend-side {
       flex: 0 0 110px;
       display: flex;
-      align-items: center;
-      justify-content: flex-start;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      color: #5c6f85;
+      font-size: 11px;
     }
 
     .multilineplot-legend-side .shiny-html-output {
@@ -1510,7 +1513,7 @@ multilineplot_css <- function(){
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      gap: 8px;
+      gap: 10px;
       min-height: 24px;
     }
 
@@ -1518,10 +1521,9 @@ multilineplot_css <- function(){
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: #5f7490;
+      color: #5c6f85;
       font-size: 11px;
       font-weight: 500;
-      letter-spacing: 0.01em;
       line-height: 1;
     }
 
