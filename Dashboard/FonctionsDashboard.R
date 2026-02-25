@@ -884,6 +884,42 @@ create_special_kpi_card_server <- function(id, values_r, compare_r, unit = "€"
   special_kpi_server(id = id, values_r = values_r, compare_r = compare_r, unit = unit)
 }
 
+create_binary_kpi_card <- function(
+    id,
+    data_r,
+    style = c("executive", "compact", "minimal"),
+    scale = 1.00,
+    title = "Couverture des risques",
+    subtitle = "Binaire (0/1)",
+    size = NULL,
+    span = NULL
+) {
+  style <- match.arg(style)
+
+  defaults <- switch(
+    style,
+    executive = list(size = "large", span = "span2"),
+    compact   = list(size = "normal", span = "span2"),
+    minimal   = list(size = "normal", span = "span1")
+  )
+
+  if (is.null(size)) size <- defaults$size
+  if (is.null(span)) span <- defaults$span
+
+  ui_card(
+    title = title,
+    subtitle = subtitle,
+    size = size,
+    span = span,
+    binary_kpi_ui(id),
+    scale = scale
+  )
+}
+
+create_binary_kpi_card_server <- function(id, data_r) {
+  binary_kpi_server(id = id, data_r = data_r)
+}
+
 create_groupbar_card <- function(
     id,
     data_r,
@@ -1708,6 +1744,159 @@ special_kpi_server <- function(id, values_r, compare_r, unit = "€") {
           ),
           tags$tbody(rows)
         )
+      )
+    })
+  })
+}
+
+binary_kpi_ui <- function(id) {
+  ns <- NS(id)
+  tags$div(
+    class = "binary-kpi-wrap",
+    uiOutput(ns("table"))
+  )
+}
+
+binary_kpi_css <- function() {
+  tags$style(HTML("
+    .binary-kpi-wrap {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    .binary-kpi-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 10px;
+      table-layout: fixed;
+      color: #2a3f58;
+      font-size: 11px;
+    }
+
+    .binary-kpi-table th,
+    .binary-kpi-table td {
+      text-align: center;
+      padding: 3px 4px;
+      vertical-align: middle;
+    }
+
+    .binary-kpi-table thead th {
+      font-size: 11px;
+      font-weight: 600;
+      color: #607891;
+      letter-spacing: 0.02em;
+      padding-bottom: 6px;
+    }
+
+    .binary-kpi-label {
+      text-align: left !important;
+      width: 100px;
+      font-weight: 600;
+      color: #30465f;
+      padding-right: 8px;
+      white-space: nowrap;
+    }
+
+    .binary-kpi-cell {
+      position: relative;
+      height: 22px;
+      border-radius: 8px;
+      border: 1px solid rgba(149, 168, 190, 0.45);
+      background: rgba(246, 250, 255, 0.65);
+      overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+      transition: transform .16s ease, filter .16s ease, box-shadow .16s ease;
+      animation: binaryCellPop 420ms cubic-bezier(.2,.8,.2,1);
+      animation-delay: var(--cell-delay, 0ms);
+      animation-fill-mode: both;
+    }
+
+    .binary-kpi-cell::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      opacity: 0.16;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0));
+    }
+
+    .binary-kpi-cell.value-1 {
+      background: linear-gradient(135deg, #62C95A, #7DDB67);
+      border-color: rgba(69, 154, 77, 0.72);
+      box-shadow: 0 6px 16px rgba(78, 173, 92, 0.22);
+    }
+
+    .binary-kpi-cell.value-0 {
+      background: linear-gradient(135deg, #D3481A, #EC5B28);
+      border-color: rgba(162, 53, 18, 0.75);
+      box-shadow: 0 6px 16px rgba(211, 72, 26, 0.20);
+    }
+
+    .binary-kpi-cell:hover {
+      transform: translateY(-1px);
+      filter: saturate(1.03);
+    }
+
+    .binary-kpi-cell span {
+      position: relative;
+      z-index: 2;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 10px;
+      letter-spacing: 0.03em;
+      text-shadow: 0 1px 1px rgba(0,0,0,0.20);
+    }
+
+    @keyframes binaryCellPop {
+      from { opacity: 0; transform: translateY(4px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .binary-kpi-cell { animation: none !important; transition: none !important; }
+    }
+  "))
+}
+
+binary_kpi_server <- function(id, data_r) {
+  moduleServer(id, function(input, output, session) {
+    output$table <- renderUI({
+      df <- data_r()
+      req(is.data.frame(df), ncol(df) >= 2)
+
+      row_labels <- as.character(df[[1]])
+      year_cols <- names(df)[2:ncol(df)]
+      mat <- as.data.frame(df[, year_cols, drop = FALSE])
+
+      rows <- lapply(seq_len(nrow(mat)), function(i) {
+        vals <- as.numeric(mat[i, , drop = TRUE])
+        tags$tr(
+          tags$td(class = "binary-kpi-label", row_labels[i]),
+          lapply(seq_along(vals), function(j) {
+            v <- ifelse(is.na(vals[j]), 0, ifelse(vals[j] >= 0.5, 1, 0))
+            tags$td(
+              tags$div(
+                class = paste("binary-kpi-cell", paste0("value-", v)),
+                style = paste0("--cell-delay:", (i * 40 + j * 30), "ms;"),
+                tags$span(v)
+              )
+            )
+          })
+        )
+      })
+
+      tags$table(
+        class = "binary-kpi-table",
+        tags$thead(
+          tags$tr(
+            tags$th(""),
+            lapply(year_cols, tags$th)
+          )
+        ),
+        tags$tbody(rows)
       )
     })
   })

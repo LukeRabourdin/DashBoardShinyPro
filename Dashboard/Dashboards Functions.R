@@ -136,6 +136,16 @@ content_map <- list(
         title = "LM/LD - En cours",
         subtitle = "KPI spécial"
       ),
+      create_binary_kpi_card(
+        id = "binary_kpi_1",
+        data_r = NULL,
+        style = "executive",
+        scale = 1.00,
+        title = "Couverture des risques",
+        subtitle = "Phénomène binaire (0/1)",
+        size = "large",
+        span = "span2"
+      ),
       create_groupbar_card(
         id = "BarplotGrouped1",
         data_r = NULL,
@@ -172,6 +182,7 @@ ui <- fluidPage(
   lineplot_css(),
   multilineplot_css(),
   special_kpi_css(),
+  binary_kpi_css(),
   ui_card_css(),
   container_size_js(),
   #stackedBar_css(),
@@ -285,6 +296,22 @@ server<-function(input, output, session) {
     values_r = kpi_values_data,
     compare_r = kpi_compare_data,
     unit = " €"
+  )
+
+  binary_kpi_data <- reactive({
+    data.frame(
+      metric = c("MAL", "MAT/PAT", "LM/LD", "AT(IJ)", "AT(FM)", "DC"),
+      `2021` = c(0, 0, 1, 1, 1, 0),
+      `2022` = c(0, 0, 1, 1, 1, 0),
+      `2023` = c(0, 0, 1, 1, 1, 0),
+      `2024` = c(0, 0, 1, 1, 1, 0),
+      check.names = FALSE
+    )
+  })
+
+  create_binary_kpi_card_server(
+    id = "binary_kpi_1",
+    data_r = binary_kpi_data
   )
   
   stack_data <- reactive({
