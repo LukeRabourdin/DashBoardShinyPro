@@ -77,6 +77,16 @@ content_map <- list(
   
   "Vue générale" = function() {
     ui_dashboard_grid(
+      create_summary_kpi_card(
+        id = "summary_kpi_1",
+        data_r = NULL,
+        style = "executive",
+        scale = 1.00,
+        title = "Synthèse sélection",
+        subtitle = "10 champs + 3 indicateurs",
+        size = "large",
+        span = "span2"
+      ),
       # Exemples du pipeline factory "R-like" : create_barplot_card(...)
       create_barplot_card(
         id = "bar1",
@@ -183,6 +193,7 @@ ui <- fluidPage(
   multilineplot_css(),
   special_kpi_css(),
   binary_kpi_css(),
+  summary_kpi_css(),
   ui_card_css(),
   container_size_js(),
   #stackedBar_css(),
@@ -220,6 +231,46 @@ server<-function(input, output, session) {
   output$debug <- renderText({
     paste("Clé sélectionnée :", selected_key())
   })
+
+  summary_kpi_data <- reactive({
+    key <- selected_key()
+
+    fields <- data.frame(
+      champ = c(
+        "Clé", "Population", "Établissements", "Région", "Segment",
+        "Sinistralité", "Budget", "Ancienneté", "Exposition", "Niveau de risque"
+      ),
+      valeur = c(
+        key,
+        "12 480 agents",
+        "38",
+        "Île-de-France",
+        "Santé / Médico-social",
+        "Modérée",
+        "27.4 M€",
+        "8.2 ans",
+        "74 %",
+        "2.6 / 5"
+      ),
+      stringsAsFactors = FALSE
+    )
+
+    indicators <- data.frame(
+      indicateur = c("Coût moyen", "Fréquence", "Gravité"),
+      `2022` = c(11.2, 3.7, 1.9),
+      `2023` = c(11.8, 3.5, 2.1),
+      `2024` = c(12.1, 3.2, 2.4),
+      check.names = FALSE
+    )
+
+    list(fields = fields, indicators = indicators)
+  })
+
+  create_summary_kpi_card_server(
+    id = "summary_kpi_1",
+    data_r = summary_kpi_data,
+    unit = ""
+  )
   
   bar_data <- reactive({
     data.frame(

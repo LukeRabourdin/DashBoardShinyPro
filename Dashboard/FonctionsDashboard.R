@@ -884,6 +884,42 @@ create_special_kpi_card_server <- function(id, values_r, compare_r, unit = "€"
   special_kpi_server(id = id, values_r = values_r, compare_r = compare_r, unit = unit)
 }
 
+create_summary_kpi_card <- function(
+    id,
+    data_r,
+    style = c("executive", "compact", "minimal"),
+    scale = 1.00,
+    title = "Synthèse sélection",
+    subtitle = "Informations descriptives",
+    size = NULL,
+    span = NULL
+) {
+  style <- match.arg(style)
+
+  defaults <- switch(
+    style,
+    executive = list(size = "large", span = "span2"),
+    compact   = list(size = "normal", span = "span2"),
+    minimal   = list(size = "normal", span = "span1")
+  )
+
+  if (is.null(size)) size <- defaults$size
+  if (is.null(span)) span <- defaults$span
+
+  ui_card(
+    title = title,
+    subtitle = subtitle,
+    size = size,
+    span = span,
+    summary_kpi_ui(id),
+    scale = scale
+  )
+}
+
+create_summary_kpi_card_server <- function(id, data_r, unit = "") {
+  summary_kpi_server(id = id, data_r = data_r, unit = unit)
+}
+
 create_binary_kpi_card <- function(
     id,
     data_r,
@@ -1742,6 +1778,190 @@ special_kpi_server <- function(id, values_r, compare_r, unit = "€") {
               tags$th("Différence")
             )
           ),
+          tags$tbody(rows)
+        )
+      )
+    })
+  })
+}
+
+summary_kpi_ui <- function(id) {
+  ns <- NS(id)
+  tags$div(
+    class = "summary-kpi-wrap",
+    uiOutput(ns("fields")),
+    uiOutput(ns("indicators"))
+  )
+}
+
+summary_kpi_css <- function() {
+  tags$style(HTML("
+    .summary-kpi-wrap {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .summary-kpi-fields {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 12px;
+      padding: 10px 12px;
+      border: 1px solid rgba(185, 198, 214, 0.50);
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.60), rgba(255,255,255,0.42));
+    }
+
+    .summary-kpi-field {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .summary-kpi-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: #627890;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .summary-kpi-value {
+      font-size: 12px;
+      color: #1f334d;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .summary-kpi-indicators {
+      border: 1px solid rgba(185, 198, 214, 0.50);
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.38));
+      overflow: hidden;
+    }
+
+    .summary-kpi-indicators table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 10px;
+      color: #263c56;
+    }
+
+    .summary-kpi-indicators th,
+    .summary-kpi-indicators td {
+      padding: 6px 7px;
+      border-bottom: 1px solid rgba(185, 198, 214, 0.35);
+      text-align: right;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .summary-kpi-indicators tr:last-child td { border-bottom: none; }
+
+    .summary-kpi-indicators thead th {
+      background: rgba(255,255,255,0.55);
+      color: #223b57;
+      font-weight: 600;
+      font-size: 10px;
+    }
+
+    .summary-kpi-indicators thead th:first-child,
+    .summary-kpi-indicators tbody td:first-child {
+      text-align: left;
+      width: 22%;
+      color: #1f334d;
+      font-weight: 500;
+    }
+
+    .summary-kpi-var {
+      color: #0d47cf;
+      font-weight: 700;
+    }
+
+    .summary-kpi-spark svg { display: block; margin: 0 auto; }
+    .summary-kpi-spark line { stroke: rgba(47,98,243,0.22); stroke-width: 1; }
+    .summary-kpi-spark polyline {
+      fill: none;
+      stroke: #2f62f3;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  "))
+}
+
+summary_kpi_server <- function(id, data_r, unit = "") {
+  moduleServer(id, function(input, output, session) {
+
+    sparkline_svg <- function(v) {
+      v <- as.numeric(v)
+      if (length(v) < 2 || all(!is.finite(v))) return(tags$span("-"))
+      xs <- seq(3, 47, length.out = length(v))
+      mn <- min(v, na.rm = TRUE)
+      mx <- max(v, na.rm = TRUE)
+      rg <- ifelse(abs(mx - mn) < 1e-9, 1, (mx - mn))
+      ys <- 17 - ((v - mn) / rg) * 14
+      pts <- paste(sprintf('%.2f,%.2f', xs, ys), collapse = ' ')
+      tags$svg(width = 54, height = 20, viewBox = "0 0 54 20",
+               tags$line(x1 = 3, y1 = 17, x2 = 51, y2 = 17),
+               tags$polyline(points = pts))
+    }
+
+    output$fields <- renderUI({
+      d <- data_r()
+      fields <- d$fields
+      req(is.data.frame(fields), ncol(fields) >= 2)
+
+      items <- lapply(seq_len(min(nrow(fields), 10)), function(i) {
+        tags$div(
+          class = "summary-kpi-field",
+          tags$div(class = "summary-kpi-label", as.character(fields[i, 1])),
+          tags$div(class = "summary-kpi-value", as.character(fields[i, 2]))
+        )
+      })
+
+      tags$div(class = "summary-kpi-fields", tagList(items))
+    })
+
+    output$indicators <- renderUI({
+      d <- data_r()
+      ind <- d$indicators
+      req(is.data.frame(ind), ncol(ind) >= 3)
+
+      labels <- as.character(ind[[1]])
+      year_cols <- names(ind)[2:ncol(ind)]
+
+      rows <- lapply(seq_len(min(3, nrow(ind))), function(i) {
+        vals <- as.numeric(ind[i, year_cols, drop = TRUE])
+        var <- if (length(vals) < 2 || is.na(vals[1]) || vals[1] == 0) {
+          NA_real_
+        } else {
+          ((vals[length(vals)] / vals[1]) - 1) * 100
+        }
+
+        tags$tr(
+          tags$td(labels[i]),
+          lapply(vals, function(v) tags$td(ifelse(is.na(v), "-", paste0(format(round(v, 1), nsmall = 1, trim = TRUE), unit)))),
+          tags$td(class = "summary-kpi-spark", sparkline_svg(vals)),
+          tags$td(class = "summary-kpi-var", ifelse(is.na(var), "-", paste0(sprintf('%.1f', var), " %")))
+        )
+      })
+
+      tags$div(
+        class = "summary-kpi-indicators",
+        tags$table(
+          tags$thead(tags$tr(tags$th(""), lapply(year_cols, tags$th), tags$th(""), tags$th("Var."))),
           tags$tbody(rows)
         )
       )
