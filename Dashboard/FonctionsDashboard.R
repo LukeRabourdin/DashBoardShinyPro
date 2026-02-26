@@ -23,16 +23,16 @@ design_tokens_css <- function() {
       --shadow-soft: 0 10px 32px rgba(14, 42, 84, 0.10);
       --shadow-strong: 0 20px 44px rgba(14, 42, 84, 0.16);
       --shadow-focus: 0 14px 30px rgba(0, 87, 184, 0.18);
-      --radius-md: 12px;
-      --radius-lg: 16px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
       --motion-fast: 160ms;
     }
 
     body {
       background:
-        radial-gradient(circle at 8% 0%, rgba(19,163,232,0.14), transparent 36%),
-        radial-gradient(circle at 90% 6%, rgba(90,70,184,0.12), transparent 32%),
-        linear-gradient(180deg, #F7FAFF 0%, #EEF3FB 100%);
+        radial-gradient(1200px 400px at 5% -2%, rgba(19,163,232,0.16), transparent 55%),
+        radial-gradient(900px 360px at 95% 0%, rgba(90,70,184,0.14), transparent 52%),
+        linear-gradient(180deg, #F8FBFF 0%, #EDF3FB 100%);
       color: var(--text-primary);
       font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       letter-spacing: 0.01em;
@@ -1151,7 +1151,7 @@ ui_card_css <- function() {
       /* base */
       background: var(--surface-card);
       border: 1px solid var(--stroke-strong);
-      border-radius: var(--radius-lg);
+      border-radius: calc(var(--radius-lg) + 2px);
       box-shadow: var(--shadow-soft);
       backdrop-filter: blur(12px) saturate(125%);
       position:relative;
@@ -1183,7 +1183,7 @@ ui_card_css <- function() {
       top:0;
       left:0;
       right:0;
-      height:3px;
+      height:4px;
       background: linear-gradient(90deg, rgba(0,87,184,0.78), rgba(19,163,232,0.65), rgba(90,70,184,0.66));
       opacity:0.75;
     }

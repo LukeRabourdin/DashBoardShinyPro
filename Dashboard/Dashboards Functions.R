@@ -256,18 +256,23 @@ ui <- fluidPage(
       left: 0;
       right: 0;
       z-index: 1100;
-      height: 86px;
-      display: flex;
+      height: 90px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
       align-items: center;
-      gap: 18px;
-      padding: 12px 24px;
-      background: linear-gradient(120deg, rgba(255,255,255,0.92), rgba(237,246,255,0.84));
+      gap: 14px;
+      padding: 14px 24px;
+      background:
+        radial-gradient(circle at 8% 20%, rgba(19,163,232,0.16), transparent 34%),
+        radial-gradient(circle at 92% 20%, rgba(90,70,184,0.14), transparent 34%),
+        linear-gradient(120deg, rgba(255,255,255,0.94), rgba(237,246,255,0.86));
       border-bottom: 1px solid rgba(185, 198, 214, 0.50);
-      box-shadow: 0 8px 24px rgba(14, 42, 84, 0.10);
-      backdrop-filter: blur(8px) saturate(120%);
+      box-shadow: 0 10px 26px rgba(14, 42, 84, 0.12);
+      backdrop-filter: blur(8px) saturate(125%);
     }
 
     .top-toolbar-title {
+      justify-self: start;
       font-size: 22px;
       font-weight: 650;
       color: #1f334d;
@@ -275,14 +280,25 @@ ui <- fluidPage(
       padding-left: 4px;
     }
 
-    .top-toolbar .search-container {
-      margin: 0;
-      justify-content: flex-end;
-      flex: 1;
+    .top-toolbar-center {
+      justify-self: center;
+      width: min(980px, 70vw);
     }
 
-    .top-toolbar .search-box {
-      width: min(920px, 66vw);
+    .top-toolbar-center .search-container {
+      margin: 0;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .top-toolbar-center .search-box {
+      width: 100%;
+    }
+
+    .top-toolbar-spacer {
+      justify-self: end;
+      width: 160px;
+      height: 1px;
     }
 
     .tabs-bar {
@@ -301,7 +317,8 @@ ui <- fluidPage(
   tags$div(
     class = "top-toolbar",
     tags$div(class = "top-toolbar-title", "Dashboard générique"),
-    ui_search_bar("search")
+    tags$div(class = "top-toolbar-center", ui_search_bar("search")),
+    tags$div(class = "top-toolbar-spacer")
   ),
   
   ui_tabs(
