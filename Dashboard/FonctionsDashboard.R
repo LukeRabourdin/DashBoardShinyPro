@@ -23,8 +23,8 @@ design_tokens_css <- function() {
       --shadow-soft: 0 10px 32px rgba(14, 42, 84, 0.10);
       --shadow-strong: 0 20px 44px rgba(14, 42, 84, 0.16);
       --shadow-focus: 0 14px 30px rgba(0, 87, 184, 0.18);
-      --radius-md: 14px;
-      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-lg: 26px;
       --motion-fast: 160ms;
     }
 
@@ -63,7 +63,7 @@ header_css <- function() {
       background: linear-gradient(120deg, rgba(255,255,255,0.92), rgba(237,246,255,0.78));
       border-bottom: 1px solid var(--stroke-soft);
       backdrop-filter: blur(10px) saturate(130%);
-      box-shadow: 12px 12px 26px rgba(163, 184, 208, 0.34), -10px -10px 24px rgba(255, 255, 255, 0.92), inset 0 1px 0 rgba(255,255,255,0.65);
+      box-shadow: 0 8px 18px rgba(31, 67, 109, 0.10), 0 1px 3px rgba(31, 67, 109, 0.07), inset 0 1px 0 rgba(255,255,255,0.76);
 
       overflow: hidden;
     }
@@ -235,15 +235,15 @@ tabs_css <- function() {
       padding: 10px 24px;
       background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(238,246,255,0.88));
       border: 1px solid var(--stroke-soft);
-      border-radius: 14px;
+      border-radius: 22px;
       backdrop-filter: blur(10px);
-      box-shadow: 12px 12px 26px rgba(163, 184, 208, 0.34), -10px -10px 24px rgba(255, 255, 255, 0.92), inset 0 1px 0 rgba(255,255,255,0.65);
+      box-shadow: 0 8px 18px rgba(31, 67, 109, 0.10), 0 1px 3px rgba(31, 67, 109, 0.07), inset 0 1px 0 rgba(255,255,255,0.76);
       margin-bottom: 12px;
     }
 
     .tab-btn {
       padding: 8px 14px;
-      border-radius: 10px;
+      border-radius: 16px;
       border: none;
       background: transparent;
       font-size: 13px;
@@ -415,8 +415,8 @@ search_bar_css <- function() {
       font-weight: 500;
       color: #1f2d3d;
 
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.72);
+      border-radius: 20px;
+      border: 1px solid rgba(170, 188, 210, 0.56);
       background-color: var(--surface-strong);
       backdrop-filter: blur(10px);
       outline: none;
@@ -1154,8 +1154,8 @@ ui_card_css <- function() {
       /* base */
       background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(238,246,255,0.88));
       border: 1px solid rgba(255,255,255,0.72);
-      border-radius: calc(var(--radius-lg) + 2px);
-      box-shadow: 12px 12px 26px rgba(163, 184, 208, 0.34), -10px -10px 24px rgba(255, 255, 255, 0.92), inset 0 1px 0 rgba(255,255,255,0.65);
+      border-radius: calc(var(--radius-lg) + 4px);
+      box-shadow: 0 8px 18px rgba(31, 67, 109, 0.10), 0 1px 3px rgba(31, 67, 109, 0.07), inset 0 1px 0 rgba(255,255,255,0.76);
       backdrop-filter: blur(12px) saturate(125%);
       position:relative;
       overflow: hidden;
@@ -2904,7 +2904,7 @@ multilineplot_css <- function(){
       border: 1px solid rgba(255,255,255,0.72);
       padding: 10px 12px;
       border-radius: 10px;
-      box-shadow: 12px 12px 26px rgba(163, 184, 208, 0.34), -10px -10px 24px rgba(255, 255, 255, 0.92), inset 0 1px 0 rgba(255,255,255,0.65);
+      box-shadow: 0 8px 18px rgba(31, 67, 109, 0.10), 0 1px 3px rgba(31, 67, 109, 0.07), inset 0 1px 0 rgba(255,255,255,0.76);
       backdrop-filter: blur(8px);
       display: none;
       z-index: 999;
@@ -3470,7 +3470,7 @@ stackedBar_html_css <- function() {
   padding: 12px 14px;
   border-radius: 10px;
   font-size: 12px;
-  box-shadow: 12px 12px 26px rgba(163, 184, 208, 0.34), -10px -10px 24px rgba(255, 255, 255, 0.92), inset 0 1px 0 rgba(255,255,255,0.65);
+  box-shadow: 0 8px 18px rgba(31, 67, 109, 0.10), 0 1px 3px rgba(31, 67, 109, 0.07), inset 0 1px 0 rgba(255,255,255,0.76);
   backdrop-filter: blur(8px);
   display: none;
   z-index: 999;
@@ -3889,7 +3889,7 @@ groupBar_html_css <- function() {
   padding:12px 14px;
   border-radius:10px;
   font-size:12px;
-  box-shadow: 12px 12px 26px rgba(163, 184, 208, 0.34), -10px -10px 24px rgba(255, 255, 255, 0.92), inset 0 1px 0 rgba(255,255,255,0.65);
+  box-shadow: 0 8px 18px rgba(31, 67, 109, 0.10), 0 1px 3px rgba(31, 67, 109, 0.07), inset 0 1px 0 rgba(255,255,255,0.76);
   backdrop-filter: blur(8px);
   display:none;
   z-index:999;
