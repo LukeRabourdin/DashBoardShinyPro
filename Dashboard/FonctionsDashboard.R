@@ -30,9 +30,9 @@ design_tokens_css <- function() {
 
     body {
       background:
-        radial-gradient(1200px 400px at 5% -2%, rgba(19,163,232,0.16), transparent 55%),
-        radial-gradient(900px 360px at 95% 0%, rgba(90,70,184,0.14), transparent 52%),
-        linear-gradient(180deg, #F8FBFF 0%, #EDF3FB 100%);
+        radial-gradient(circle at 8% 12%, rgba(19,163,232,0.18), transparent 32%),
+        radial-gradient(circle at 92% 10%, rgba(90,70,184,0.16), transparent 34%),
+        linear-gradient(130deg, rgba(255,255,255,0.96), rgba(237,246,255,0.90) 55%, rgba(228,240,252,0.88));
       color: var(--text-primary);
       font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       letter-spacing: 0.01em;
@@ -63,7 +63,7 @@ header_css <- function() {
       background: linear-gradient(120deg, rgba(255,255,255,0.92), rgba(237,246,255,0.78));
       border-bottom: 1px solid var(--stroke-soft);
       backdrop-filter: blur(10px) saturate(130%);
-      box-shadow: var(--shadow-soft);
+      box-shadow: 12px 12px 26px rgba(163, 184, 208, 0.34), -10px -10px 24px rgba(255, 255, 255, 0.92), inset 0 1px 0 rgba(255,255,255,0.65);
 
       overflow: hidden;
     }
@@ -233,11 +233,11 @@ tabs_css <- function() {
       display: flex;
       gap: 12px;
       padding: 10px 24px;
-      background: var(--surface-card);
+      background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(238,246,255,0.88));
       border: 1px solid var(--stroke-soft);
       border-radius: 14px;
       backdrop-filter: blur(10px);
-      box-shadow: var(--shadow-soft);
+      box-shadow: 12px 12px 26px rgba(163, 184, 208, 0.34), -10px -10px 24px rgba(255, 255, 255, 0.92), inset 0 1px 0 rgba(255,255,255,0.65);
       margin-bottom: 12px;
     }
 
@@ -290,7 +290,10 @@ tabs_css <- function() {
       height: calc(100vh - 140px); /* header + tabs */
       overflow-y: auto;
       padding: 24px;
-      background: transparent;
+      background:
+        radial-gradient(circle at 8% -6%, rgba(19,163,232,0.10), transparent 34%),
+        radial-gradient(circle at 96% -10%, rgba(90,70,184,0.09), transparent 30%),
+        linear-gradient(180deg, rgba(248,252,255,0.92), rgba(238,245,253,0.90));
     }
   "))
 }
@@ -413,7 +416,7 @@ search_bar_css <- function() {
       color: #1f2d3d;
 
       border-radius: 14px;
-      border: 1px solid var(--stroke-strong);
+      border: 1px solid rgba(255,255,255,0.72);
       background-color: var(--surface-strong);
       backdrop-filter: blur(10px);
       outline: none;
@@ -1149,10 +1152,10 @@ ui_card_css <- function() {
   tags$style(HTML("
     .ui-card{
       /* base */
-      background: var(--surface-card);
-      border: 1px solid var(--stroke-strong);
+      background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(238,246,255,0.88));
+      border: 1px solid rgba(255,255,255,0.72);
       border-radius: calc(var(--radius-lg) + 2px);
-      box-shadow: var(--shadow-soft);
+      box-shadow: 12px 12px 26px rgba(163, 184, 208, 0.34), -10px -10px 24px rgba(255, 255, 255, 0.92), inset 0 1px 0 rgba(255,255,255,0.65);
       backdrop-filter: blur(12px) saturate(125%);
       position:relative;
       overflow: hidden;
@@ -2898,10 +2901,10 @@ multilineplot_css <- function(){
       position: absolute;
       pointer-events: none;
       background: rgba(255,255,255,0.96);
-      border: 1px solid var(--stroke-strong);
+      border: 1px solid rgba(255,255,255,0.72);
       padding: 10px 12px;
       border-radius: 10px;
-      box-shadow: var(--shadow-soft);
+      box-shadow: 12px 12px 26px rgba(163, 184, 208, 0.34), -10px -10px 24px rgba(255, 255, 255, 0.92), inset 0 1px 0 rgba(255,255,255,0.65);
       backdrop-filter: blur(8px);
       display: none;
       z-index: 999;
@@ -3463,11 +3466,11 @@ stackedBar_html_css <- function() {
   position: absolute;
   pointer-events: none;
   background: rgba(255,255,255,0.96);
-  border: 1px solid var(--stroke-strong);
+  border: 1px solid rgba(255,255,255,0.72);
   padding: 12px 14px;
   border-radius: 10px;
   font-size: 12px;
-  box-shadow: var(--shadow-soft);
+  box-shadow: 12px 12px 26px rgba(163, 184, 208, 0.34), -10px -10px 24px rgba(255, 255, 255, 0.92), inset 0 1px 0 rgba(255,255,255,0.65);
   backdrop-filter: blur(8px);
   display: none;
   z-index: 999;
@@ -3882,11 +3885,11 @@ groupBar_html_css <- function() {
   position:absolute;
   pointer-events:none;
   background:rgba(255,255,255,0.96);
-  border: 1px solid var(--stroke-strong);
+  border: 1px solid rgba(255,255,255,0.72);
   padding:12px 14px;
   border-radius:10px;
   font-size:12px;
-  box-shadow: var(--shadow-soft);
+  box-shadow: 12px 12px 26px rgba(163, 184, 208, 0.34), -10px -10px 24px rgba(255, 255, 255, 0.92), inset 0 1px 0 rgba(255,255,255,0.65);
   backdrop-filter: blur(8px);
   display:none;
   z-index:999;
