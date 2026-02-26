@@ -922,6 +922,42 @@ create_summary_kpi_card_server <- function(id, data_r, unit = "") {
   summary_kpi_server(id = id, data_r = data_r, unit = unit)
 }
 
+create_simple_table_kpi_card <- function(
+    id,
+    data_r,
+    style = c("executive", "compact", "minimal"),
+    scale = 1.00,
+    title = "KPI tableau",
+    subtitle = "Illustration simple",
+    size = NULL,
+    span = NULL
+) {
+  style <- match.arg(style)
+
+  defaults <- switch(
+    style,
+    executive = list(size = "normal", span = "span1"),
+    compact   = list(size = "small",  span = "span1"),
+    minimal   = list(size = "normal", span = "span2")
+  )
+
+  if (is.null(size)) size <- defaults$size
+  if (is.null(span)) span <- defaults$span
+
+  ui_card(
+    title = title,
+    subtitle = subtitle,
+    size = size,
+    span = span,
+    simple_table_kpi_ui(id),
+    scale = scale
+  )
+}
+
+create_simple_table_kpi_card_server <- function(id, data_r) {
+  simple_table_kpi_server(id = id, data_r = data_r)
+}
+
 create_global_score_kpi_card <- function(
     id,
     data_r,
@@ -2037,6 +2073,103 @@ summary_kpi_server <- function(id, data_r, unit = "") {
         tags$table(
           tags$thead(tags$tr(tags$th(""), lapply(year_cols, tags$th), tags$th(""), tags$th("Var."))),
           tags$tbody(rows)
+        )
+      )
+    })
+  })
+}
+
+simple_table_kpi_ui <- function(id) {
+  ns <- NS(id)
+  tags$div(
+    class = "simple-table-kpi-wrap",
+    uiOutput(ns("table"))
+  )
+}
+
+simple_table_kpi_css <- function() {
+  tags$style(HTML(" 
+    .simple-table-kpi-wrap {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      border: 1px solid rgba(185, 198, 214, 0.50);
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.38));
+      overflow: hidden;
+    }
+
+    .simple-table-kpi {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 11px;
+      color: #263c56;
+    }
+
+    .simple-table-kpi th,
+    .simple-table-kpi td {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(185, 198, 214, 0.35);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: right;
+    }
+
+    .simple-table-kpi thead th {
+      background: rgba(255,255,255,0.58);
+      font-size: 10px;
+      color: #223b57;
+      font-weight: 700;
+    }
+
+    .simple-table-kpi th:first-child,
+    .simple-table-kpi td:first-child {
+      text-align: left;
+      width: 42%;
+      font-weight: 600;
+      color: #1f334d;
+    }
+
+    .simple-table-kpi tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .simple-table-kpi .delta-pos { color: #0f7a3a; font-weight: 700; }
+    .simple-table-kpi .delta-neg { color: #0d47cf; font-weight: 700; }
+  "))
+}
+
+simple_table_kpi_server <- function(id, data_r) {
+  moduleServer(id, function(input, output, session) {
+    output$table <- renderUI({
+      d <- data_r()
+      req(is.data.frame(d), ncol(d) >= 4)
+
+      tags$table(
+        class = "simple-table-kpi",
+        tags$thead(
+          tags$tr(
+            tags$th(names(d)[1]),
+            tags$th(names(d)[2]),
+            tags$th(names(d)[3]),
+            tags$th(names(d)[4])
+          )
+        ),
+        tags$tbody(
+          lapply(seq_len(nrow(d)), function(i) {
+            delta_raw <- as.character(d[i, 4, drop = TRUE])
+            delta_val <- suppressWarnings(as.numeric(gsub("[^0-9+\\-.]", "", delta_raw)))
+            delta_cls <- if (is.finite(delta_val) && delta_val > 0) "delta-pos" else "delta-neg"
+
+            tags$tr(
+              tags$td(as.character(d[i, 1, drop = TRUE])),
+              tags$td(as.character(d[i, 2, drop = TRUE])),
+              tags$td(as.character(d[i, 3, drop = TRUE])),
+              tags$td(class = delta_cls, delta_raw)
+            )
+          })
         )
       )
     })

@@ -119,6 +119,16 @@ content_map <- list(
         size = "large",
         span = "span2"
       ),
+      create_simple_table_kpi_card(
+        id = "simple_table_kpi_1",
+        data_r = NULL,
+        style = "executive",
+        scale = 1.00,
+        title = "KPI tableau simple",
+        subtitle = "Exemple d'illustration",
+        size = "normal",
+        span = "span1"
+      ),
       # Exemples du pipeline factory "R-like" : create_barplot_card(...)
       create_barplot_card(
         id = "bar1",
@@ -226,6 +236,7 @@ ui <- fluidPage(
   special_kpi_css(),
   binary_kpi_css(),
   summary_kpi_css(),
+  simple_table_kpi_css(),
   global_score_kpi_css(),
   france_map_kpi_css(),
   ui_card_css(),
@@ -341,6 +352,22 @@ server<-function(input, output, session) {
   create_france_map_kpi_card_server(
     id = "france_map_kpi_1",
     data_r = france_map_data
+  )
+
+  simple_table_kpi_data <- reactive({
+    data.frame(
+      KPI = c("Fréquence", "Coût moyen", "Gravité", "Taux d'exposition"),
+      `2023` = c("3.5", "11.8", "2.1", "74%"),
+      `2024` = c("3.2", "12.1", "2.4", "77%"),
+      `Δ` = c("-8.6%", "+2.5%", "+14.3%", "+4.1%"),
+      check.names = FALSE,
+      stringsAsFactors = FALSE
+    )
+  })
+
+  create_simple_table_kpi_card_server(
+    id = "simple_table_kpi_1",
+    data_r = simple_table_kpi_data
   )
   
   bar_data <- reactive({
