@@ -2489,7 +2489,7 @@ france_map_kpi_server <- function(id, data_r) {
 
           if (!is.null(label_pts) && nrow(label_pts) == nrow(label_df)) {
             label_txt <- paste0(label_df$code, "\n", sprintf("%.2f%%", label_df$value))
-            text(label_pts[, 1], label_pts[, 2], labels = label_txt, cex = 0.525, font = 2, col = "#102A43")
+            text(label_pts[, 1], label_pts[, 2], labels = label_txt, cex = 0.62, font = 2, col = "#102A43")
           }
         }
       },
