@@ -2160,7 +2160,7 @@ simple_table_kpi_server <- function(id, data_r) {
         tags$tbody(
           lapply(seq_len(nrow(d)), function(i) {
             delta_raw <- as.character(d[i, 4, drop = TRUE])
-            delta_val <- suppressWarnings(as.numeric(gsub("[^0-9+\\-.]", "", delta_raw)))
+            delta_val <- suppressWarnings(as.numeric(gsub("[^0-9+.-]", "", delta_raw)))
             delta_cls <- if (is.finite(delta_val) && delta_val > 0) "delta-pos" else "delta-neg"
 
             tags$tr(
