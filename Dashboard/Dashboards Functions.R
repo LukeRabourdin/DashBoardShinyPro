@@ -246,7 +246,10 @@ ui <- fluidPage(
   groupBar_html_css(),
   theme = bs_theme(version = 5),
   
-  ui_header(),
+  tags$div(
+    style = "padding: 18px 26px 0 26px; font-size: 22px; font-weight: 650; color: #1f334d;",
+    "Dashboard générique"
+  ),
   ui_search_bar("search"),
   
   ui_tabs(

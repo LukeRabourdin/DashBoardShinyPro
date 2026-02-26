@@ -397,7 +397,7 @@ search_bar_css <- function() {
     }
 
     .search-box {
-      width: min(620px, 92vw);
+      width: min(860px, 96vw);
       position: relative; /* reference pour le bouton */
     }
 
@@ -2749,9 +2749,9 @@ binary_kpi_css <- function() {
     }
 
     .binary-kpi-cell:hover {
-      transform: translateY(-2px);
-      filter: saturate(1.06);
-      box-shadow: 0 10px 20px rgba(24, 67, 122, 0.20);
+      transform: translateY(-4px) scale(1.02);
+      filter: saturate(1.14) brightness(1.03);
+      box-shadow: 0 14px 28px rgba(24, 67, 122, 0.30);
     }
 
     @keyframes binaryCellPop {
