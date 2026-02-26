@@ -1241,6 +1241,12 @@ ui_card_css <- function() {
       display:none;
       z-index:5;
     }
+    .card-copy-btn:focus,
+    .card-copy-btn:focus-visible,
+    .card-copy-btn:active{
+      outline:none;
+      box-shadow:0 2px 6px rgba(0,0,0,.15);
+    }
     .ui-card:hover { box-shadow: var(--shadow-focus); transform: translateY(-4px); transition: transform var(--motion-fast) ease, box-shadow var(--motion-fast) ease; }
     .ui-card:hover .card-copy-btn{ display:block; }
     
@@ -2743,8 +2749,9 @@ binary_kpi_css <- function() {
     }
 
     .binary-kpi-cell:hover {
-      transform: translateY(-1px);
-      filter: saturate(1.03);
+      transform: translateY(-2px);
+      filter: saturate(1.06);
+      box-shadow: 0 10px 20px rgba(24, 67, 122, 0.20);
     }
 
     @keyframes binaryCellPop {
