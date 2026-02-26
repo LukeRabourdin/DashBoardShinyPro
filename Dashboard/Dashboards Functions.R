@@ -244,13 +244,65 @@ ui <- fluidPage(
   #stackedBar_css(),
   stackedBar_html_css(),
   groupBar_html_css(),
+  tags$style(HTML(" 
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .top-toolbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1100;
+      height: 86px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 12px 24px;
+      background: linear-gradient(120deg, rgba(255,255,255,0.92), rgba(237,246,255,0.84));
+      border-bottom: 1px solid rgba(185, 198, 214, 0.50);
+      box-shadow: 0 8px 24px rgba(14, 42, 84, 0.10);
+      backdrop-filter: blur(8px) saturate(120%);
+    }
+
+    .top-toolbar-title {
+      font-size: 22px;
+      font-weight: 650;
+      color: #1f334d;
+      white-space: nowrap;
+      padding-left: 4px;
+    }
+
+    .top-toolbar .search-container {
+      margin: 0;
+      justify-content: flex-end;
+      flex: 1;
+    }
+
+    .top-toolbar .search-box {
+      width: min(920px, 66vw);
+    }
+
+    .tabs-bar {
+      position: sticky;
+      top: 86px;
+      z-index: 1050;
+      margin: 98px 24px 10px 24px;
+    }
+
+    .tabs-content {
+      height: calc(100vh - 160px) !important;
+      padding-top: 12px;
+    }
+  ")),
   theme = bs_theme(version = 5),
-  
   tags$div(
-    style = "padding: 18px 26px 0 26px; font-size: 22px; font-weight: 650; color: #1f334d;",
-    "Dashboard générique"
+    class = "top-toolbar",
+    tags$div(class = "top-toolbar-title", "Dashboard générique"),
+    ui_search_bar("search")
   ),
-  ui_search_bar("search"),
   
   ui_tabs(
     "tabs",
