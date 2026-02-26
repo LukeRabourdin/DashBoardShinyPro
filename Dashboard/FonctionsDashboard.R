@@ -2379,12 +2379,20 @@ france_map_kpi_server <- function(id, data_r) {
       as.numeric(val)
     }
 
+    plot_width <- reactive({
+      w <- get_client_dim("width")
+      if (!is.finite(w) || w < 200) return(800)
+      w
+    })
+
+    plot_height <- reactive({
+      h <- get_client_dim("height")
+      if (!is.finite(h) || h < 160) return(520)
+      h
+    })
+
     output$map <- renderPlot(
       {
-        current_w <- get_client_dim("width")
-        current_h <- get_client_dim("height")
-        req(is.finite(current_w), is.finite(current_h), current_w > 20, current_h > 20)
-
         d <- data_r()
         req(is.list(d), !is.null(d$geojson_path), !is.null(d$values), !is.null(d$dept_code))
 
@@ -2485,6 +2493,8 @@ france_map_kpi_server <- function(id, data_r) {
           }
         }
       },
+      width = function() plot_width(),
+      height = function() plot_height(),
       res = 96
     )
 
