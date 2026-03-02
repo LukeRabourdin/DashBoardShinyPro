@@ -1448,7 +1448,7 @@ barplot_server <- function(id, data_r, style = c("executive", "compact", "minima
         "measure_container",
         list(id = session$ns("container"))
       )
-    }, once = TRUE)
+    }, once = FALSE)
 
 
     observeEvent(input$container_size, {
@@ -1668,7 +1668,7 @@ lineplot_server <- function(id, data_r, style = c("executive", "compact", "minim
         "measure_container",
         list(id = session$ns("container"))
       )
-    }, once = TRUE)
+    }, once = FALSE)
 
     observeEvent(input$container_size, {
       width  <- input$container_size$width
@@ -3134,7 +3134,7 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
         "measure_container",
         list(id = session$ns("container"))
       )
-    }, once = TRUE)
+    }, once = FALSE)
 
     observeEvent(input$container_size, {
       width  <- input$container_size$width
