@@ -1555,11 +1555,15 @@ barplot_server <- function(id, data_r, style = c("executive", "compact", "minima
       if (is.null(width) || width < 20) return()
 
       df <- data_r()
-      values <- df$value
-      labels <- df$year
+      req(is.data.frame(df), ncol(df) >= 2)
+
+      labels <- df[[1]]
+      values <- suppressWarnings(as.numeric(df[[2]]))
+      if (all(is.na(values))) return()
 
       n <- length(values)
-      max_val <- max(values)
+      if (n < 1) return()
+      max_val <- max(values, na.rm = TRUE)
 
       margin_top    <- height * 0.12
       margin_bottom <- height * 0.18
@@ -1773,9 +1777,14 @@ lineplot_server <- function(id, data_r, style = c("executive", "compact", "minim
       if (is.null(width) || width < 20) return()
 
       df <- data_r()
-      values <- df$value
-      labels <- df$year
+      req(is.data.frame(df), ncol(df) >= 2)
+
+      labels <- as.character(df[[1]])
+      values <- suppressWarnings(as.numeric(df[[2]]))
+      if (all(is.na(values))) return()
+
       n <- length(values)
+      if (n < 2) return()
 
       max_val <- max(values, na.rm = TRUE)
       min_val <- min(values, na.rm = TRUE)
