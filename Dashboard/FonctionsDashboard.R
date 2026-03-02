@@ -209,19 +209,54 @@ dashboard_layout_css <- function() {
 
 container_size_js <- function() {
   tags$script(HTML("
-Shiny.addCustomMessageHandler('measure_container', function(message) {
+(function(){
+  const observers = {};
 
-  const el = document.getElementById(message.id);
-  if (!el) return;
+  function emitSize(el){
+    if (!el || !el.id) return;
+    const rect = el.getBoundingClientRect();
+    Shiny.setInputValue(el.id + '_size', {
+      width: rect.width,
+      height: rect.height
+    }, {priority: 'event'});
+  }
 
-  const rect = el.getBoundingClientRect();
+  function ensureObserver(el){
+    if (!el || !el.id || observers[el.id]) return;
+    if (typeof ResizeObserver === 'undefined') return;
 
-  Shiny.setInputValue(message.id + '_size', {
-    width: rect.width,
-    height: rect.height
-  }, {priority: 'event'});
+    const ro = new ResizeObserver(function(){ emitSize(el); });
+    ro.observe(el);
+    observers[el.id] = ro;
+  }
 
-});
+  function measureAllContainers(){
+    document.querySelectorAll("[id$='-container']").forEach(function(el){
+      emitSize(el);
+      ensureObserver(el);
+    });
+  }
+
+  window.__measureAllContainers = measureAllContainers;
+
+  Shiny.addCustomMessageHandler('measure_container', function(message) {
+    const el = document.getElementById(message.id);
+    if (!el) return;
+    emitSize(el);
+    ensureObserver(el);
+  });
+
+  window.addEventListener('resize', function(){
+    measureAllContainers();
+  });
+
+  document.addEventListener('click', function(e){
+    if (e.target && e.target.classList && e.target.classList.contains('tab-btn')) {
+      setTimeout(measureAllContainers, 80);
+    }
+  });
+
+})();
 "))
 
 
@@ -1342,6 +1377,15 @@ ui_card_css <- function() {
       outline:none;
       box-shadow:0 2px 6px rgba(0,0,0,.15);
     }
+    .dashboard-grid > * {
+      animation: dashboardCardEnter 420ms ease both;
+    }
+
+    @keyframes dashboardCardEnter {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
     .ui-card:hover { box-shadow: var(--shadow-focus); transform: translateY(-4px); transition: transform var(--motion-fast) ease, box-shadow var(--motion-fast) ease; }
     .ui-card:hover .card-copy-btn{ display:block; }
     
@@ -1448,7 +1492,7 @@ barplot_server <- function(id, data_r, style = c("executive", "compact", "minima
         "measure_container",
         list(id = session$ns("container"))
       )
-    }, once = FALSE)
+    }, once = TRUE)
 
 
     observeEvent(input$container_size, {
@@ -1668,7 +1712,7 @@ lineplot_server <- function(id, data_r, style = c("executive", "compact", "minim
         "measure_container",
         list(id = session$ns("container"))
       )
-    }, once = FALSE)
+    }, once = TRUE)
 
     observeEvent(input$container_size, {
       width  <- input$container_size$width
@@ -3134,7 +3178,7 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
         "measure_container",
         list(id = session$ns("container"))
       )
-    }, once = FALSE)
+    }, once = TRUE)
 
     observeEvent(input$container_size, {
       width  <- input$container_size$width
