@@ -211,13 +211,22 @@ container_size_js <- function() {
   tags$script(HTML("
 (function(){
   const observers = {};
+  const lastSize = {};
 
   function emitSize(el){
     if (!el || !el.id) return;
     const rect = el.getBoundingClientRect();
+    const width = Math.round(rect.width || 0);
+    const height = Math.round(rect.height || 0);
+    const prev = lastSize[el.id];
+
+    if (prev && prev.width === width && prev.height === height) return;
+
+    lastSize[el.id] = { width: width, height: height };
+
     Shiny.setInputValue(el.id + '_size', {
-      width: rect.width,
-      height: rect.height
+      width: width,
+      height: height
     }, {priority: 'event'});
   }
 
@@ -237,11 +246,12 @@ container_size_js <- function() {
     });
   }
 
-  window.__measureAllContainers = measureAllContainers;
-
   Shiny.addCustomMessageHandler('measure_container', function(message) {
     const el = document.getElementById(message.id);
-    if (!el) return;
+    if (!el) {
+      setTimeout(measureAllContainers, 80);
+      return;
+    }
     emitSize(el);
     ensureObserver(el);
   });
@@ -256,6 +266,16 @@ container_size_js <- function() {
     }
   });
 
+  const root = document.body;
+  if (typeof MutationObserver !== 'undefined' && root) {
+    const mo = new MutationObserver(function(){
+      setTimeout(measureAllContainers, 0);
+    });
+    mo.observe(root, { childList: true, subtree: true });
+  }
+
+  setTimeout(measureAllContainers, 0);
+  setTimeout(measureAllContainers, 120);
 })();
 "))
 
