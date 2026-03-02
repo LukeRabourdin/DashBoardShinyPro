@@ -231,7 +231,7 @@ container_size_js <- function() {
   }
 
   function measureAllContainers(){
-    document.querySelectorAll('[id$="-container"]').forEach(function(el){
+    document.querySelectorAll(\"[id$='-container']\").forEach(function(el){
       emitSize(el);
       ensureObserver(el);
     });
