@@ -127,6 +127,79 @@ header_css <- function() {
   "))
 }
 
+
+dashboard_layout_css <- function() {
+  tags$style(HTML(" 
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .top-toolbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1100;
+      height: 90px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 24px;
+      background:
+        radial-gradient(circle at 8% 20%, rgba(19,163,232,0.16), transparent 34%),
+        radial-gradient(circle at 92% 20%, rgba(90,70,184,0.14), transparent 34%),
+        linear-gradient(120deg, rgba(255,255,255,0.94), rgba(237,246,255,0.86));
+      border-bottom: 1px solid rgba(185, 198, 214, 0.50);
+      box-shadow: 0 10px 26px rgba(14, 42, 84, 0.12);
+      backdrop-filter: blur(8px) saturate(125%);
+    }
+
+    .top-toolbar-title {
+      justify-self: start;
+      font-size: 22px;
+      font-weight: 650;
+      color: #1f334d;
+      white-space: nowrap;
+      padding-left: 4px;
+    }
+
+    .top-toolbar-center {
+      justify-self: center;
+      width: min(980px, 70vw);
+    }
+
+    .top-toolbar-center .search-container {
+      margin: 0;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .top-toolbar-center .search-box {
+      width: 100%;
+    }
+
+    .top-toolbar-spacer {
+      justify-self: end;
+      width: 160px;
+      height: 1px;
+    }
+
+    .tabs-bar {
+      position: sticky;
+      top: 86px;
+      z-index: 1050;
+      margin: 98px 24px 10px 24px;
+    }
+
+    .tabs-content {
+      height: calc(100vh - 160px) !important;
+      padding-top: 12px;
+    }
+  "))
+}
+
 container_size_js <- function() {
   tags$script(HTML("
 Shiny.addCustomMessageHandler('measure_container', function(message) {
