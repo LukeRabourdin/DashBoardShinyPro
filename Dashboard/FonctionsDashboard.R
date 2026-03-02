@@ -266,6 +266,18 @@ container_size_js <- function() {
     }
   });
 
+
+  Shiny.addCustomMessageHandler('flash_cards', function() {
+    document.querySelectorAll('.ui-card').forEach(function(card){
+      card.classList.remove('is-refreshing');
+      void card.offsetWidth;
+      card.classList.add('is-refreshing');
+      setTimeout(function(){
+        card.classList.remove('is-refreshing');
+      }, 420);
+    });
+  });
+
   const root = document.body;
   if (typeof MutationObserver !== 'undefined' && root) {
     const mo = new MutationObserver(function(){
@@ -768,6 +780,10 @@ search_server <- function(id, keys) {
     observeEvent(input$validated, {
       selected(input$validated)
     })
+
+    observeEvent(selected(), {
+      session$sendCustomMessage('flash_cards', list())
+    }, ignoreInit = TRUE)
     
     return(selected)
   })
@@ -1408,6 +1424,22 @@ ui_card_css <- function() {
 
     .ui-card:hover { box-shadow: var(--shadow-focus); transform: translateY(-4px); transition: transform var(--motion-fast) ease, box-shadow var(--motion-fast) ease; }
     .ui-card:hover .card-copy-btn{ display:block; }
+
+    .ui-card.is-refreshing::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: rgba(255, 255, 255, 0.26);
+      pointer-events: none;
+      animation: cardRefreshFlash 420ms ease;
+    }
+
+    @keyframes cardRefreshFlash {
+      0% { opacity: 0; }
+      35% { opacity: 1; }
+      100% { opacity: 0; }
+    }
     
     
     
@@ -1515,7 +1547,7 @@ barplot_server <- function(id, data_r, style = c("executive", "compact", "minima
     }, once = TRUE)
 
 
-    observeEvent(input$container_size, {
+    observeEvent(list(input$container_size, data_r()), {
 
       width  <- input$container_size$width
       height <- input$container_size$height
@@ -1734,7 +1766,7 @@ lineplot_server <- function(id, data_r, style = c("executive", "compact", "minim
       )
     }, once = TRUE)
 
-    observeEvent(input$container_size, {
+    observeEvent(list(input$container_size, data_r()), {
       width  <- input$container_size$width
       height <- input$container_size$height
 
@@ -3200,7 +3232,7 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
       )
     }, once = TRUE)
 
-    observeEvent(input$container_size, {
+    observeEvent(list(input$container_size, data_r()), {
       width  <- input$container_size$width
       height <- input$container_size$height
 
