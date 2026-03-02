@@ -186,6 +186,13 @@ dashboard_layout_css <- function() {
       height: 1px;
     }
 
+    .debug-key-wrap {
+      margin: 94px 24px 0 24px;
+      color: #53657a;
+      font-size: 13px;
+      min-height: 18px;
+    }
+
     .tabs-bar {
       position: sticky;
       top: 86px;
@@ -684,8 +691,20 @@ search_server <- function(id, keys) {
     # Validation par clic bouton
     # -------------------------
     observeEvent(input$go, {
-      if (input$query %in% keys)
-        selected(input$query)
+      req(input$query)
+      query <- trimws(input$query)
+      req(nzchar(query))
+
+      exact_match <- keys[tolower(keys) == tolower(query)]
+      if (length(exact_match) > 0) {
+        selected(exact_match[[1]])
+        return()
+      }
+
+      suggestions <- filtered_keys()
+      if (length(suggestions) > 0) {
+        selected(suggestions[[1]])
+      }
     })
     
     # -------------------------

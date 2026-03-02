@@ -252,6 +252,7 @@ ui <- fluidPage(
     tags$div(class = "top-toolbar-center", ui_search_bar("search")),
     tags$div(class = "top-toolbar-spacer")
   ),
+  tags$div(class = "debug-key-wrap", textOutput("debug")),
   
   ui_tabs(
     "tabs",
