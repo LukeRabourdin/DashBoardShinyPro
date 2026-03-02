@@ -1426,7 +1426,7 @@ ui_card_css <- function() {
     .ui-card:hover .card-copy-btn{ display:block; }
 
     .ui-card.is-refreshing::after {
-      content: "";
+      content: '';
       position: absolute;
       inset: 0;
       border-radius: inherit;
