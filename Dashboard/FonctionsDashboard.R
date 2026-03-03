@@ -3294,7 +3294,9 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
       axis_range <- max(axis_max - axis_min, 1e-9)
 
       format_multiline_value <- function(x, digits = 1) {
-        format(round(x, digits), big.mark = " ", trim = TRUE, scientific = FALSE)
+        formatted <- format(round(x, digits), big.mark = " ", trim = TRUE, scientific = FALSE)
+        formatted <- sub("^(-?)0+([1-9][0-9 ]*)$", "\\1\\2", formatted, perl = TRUE)
+        formatted
       }
 
       margin_top <- height * 0.14
