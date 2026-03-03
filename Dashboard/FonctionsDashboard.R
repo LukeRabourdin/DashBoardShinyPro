@@ -3758,6 +3758,8 @@ stackedBar_server <- function(id, data_r, unit = "") {
       
       n <- nrow(df)
       k <- ncol(values)
+
+      label_font_size <- max(8, min(12, 14 - (0.45 * n)))
       
       colors <- relyens_chart_colors(k)
       
@@ -4176,6 +4178,8 @@ groupBar_server <- function(id, data_r, unit = "") {
       
       n <- nrow(df)
       k <- ncol(values)
+
+      label_font_size <- max(8, min(12, 14 - (0.45 * n)))
       
       colors <- relyens_chart_colors(k)
       
@@ -4214,7 +4218,11 @@ groupBar_server <- function(id, data_r, unit = "") {
               )
             ),
             
-            tags$div(class="group-year", years[i])
+            tags$div(
+              class="group-year",
+              style = paste0("font-size:", sprintf("%.1f", label_font_size), "px;"),
+              years[i]
+            )
           )
         }),
         
