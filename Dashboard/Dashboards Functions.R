@@ -95,9 +95,9 @@ content_map <- list(
         style = "executive",
         scale = 1.00,
         title = "Synthèse sélection",
-        subtitle = "10 champs + 3 indicateurs",
+        subtitle = "10 champs + 3 indicateurs · exemple spanfull",
         size = "large",
-        span = "span2"
+        span = "spanfull"
       ),
       create_global_score_kpi_card(
         id = "global_score_kpi_1",
@@ -105,9 +105,9 @@ content_map <- list(
         style = "executive",
         scale = 1.00,
         title = "Score global",
-        subtitle = "Lecture immédiate de position",
+        subtitle = "Lecture immédiate de position · exemple spantier",
         size = "normal",
-        span = "span1"
+        span = "spantier"
       ),
       create_france_map_kpi_card(
         id = "france_map_kpi_1",
@@ -125,9 +125,9 @@ content_map <- list(
         style = "executive",
         scale = 1.00,
         title = "KPI tableau simple",
-        subtitle = "Exemple d'illustration",
+        subtitle = "Exemple d'illustration · exemple spanmiddle",
         size = "normal",
-        span = "span1"
+        span = "spanmiddle"
       ),
       # Exemples du pipeline factory "R-like" : create_barplot_card(...)
       create_barplot_card(
