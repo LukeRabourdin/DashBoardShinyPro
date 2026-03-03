@@ -3708,6 +3708,8 @@ stackedBar_server <- function(id, data_r, unit = "") {
     output$legend <- renderUI({
       
       df <- data_r()
+      req(is.data.frame(df), ncol(df) >= 2)
+
       values <- df[, -1, drop = FALSE]
       vars <- colnames(values)
       k <- ncol(values)
@@ -3734,10 +3736,13 @@ stackedBar_server <- function(id, data_r, unit = "") {
     output$bars <- renderUI({
       
       df <- data_r()
-      
-      years  <- df$year
-      values <- df[, -1, drop = FALSE]
+      req(is.data.frame(df), ncol(df) >= 2)
+
+      years  <- as.character(df[[1]])
+      values <- as.data.frame(lapply(df[, -1, drop = FALSE], function(x) suppressWarnings(as.numeric(x))))
       vars   <- colnames(values)
+      if (ncol(values) == 0) return(NULL)
+      if (all(is.na(as.matrix(values)))) return(NULL)
       
       totals    <- rowSums(values, na.rm = TRUE)
       max_total <- max(totals, na.rm = TRUE)
@@ -3783,7 +3788,7 @@ stackedBar_server <- function(id, data_r, unit = "") {
                 # SEGMENTS
                 lapply(seq_len(k), function(j) {
                   
-                  val <- values[i, j]
+                  val <- values[[j]][i]
                   
                   segment_pct <- if (total_val > 0) {
                     (val / total_val) * 100
@@ -3799,7 +3804,7 @@ stackedBar_server <- function(id, data_r, unit = "") {
                     ),
                     `data-index` = i,
                     `data-col`   = vars[j],
-                    paste0(round(val, 1), unit)
+                    if (is.na(val)) "" else paste0(round(val, 1), unit)
                   )
                 })
               )
@@ -3820,6 +3825,7 @@ stackedBar_server <- function(id, data_r, unit = "") {
 
 
 stackedBar_js <- function(id, df, unit){
+  label_col <- names(df)[1]
   
   json <- jsonlite::toJSON(df, auto_unbox = TRUE, dataframe = "rows")
   
@@ -3835,6 +3841,7 @@ stackedBar_js <- function(id, df, unit){
 
       const data = ", json, ";
       const unit = '", unit, "';
+      const labelCol = '", label_col, "';
 
       graph.querySelectorAll('.stack-seg').forEach(seg => {
 
@@ -3844,11 +3851,11 @@ stackedBar_js <- function(id, df, unit){
           const row = data[index];
 
           let total = 0;
-          let html = `<div class='tooltip-title'>${row.year}</div>`;
+          let html = `<div class='tooltip-title'>${row[labelCol] ?? ''}</div>`;
 
           Object.keys(row).forEach(k => {
 
-            if(k === 'year') return;
+            if(k === labelCol) return;
 
             const v = Number(row[k] || 0);
             total += v;
@@ -4124,6 +4131,8 @@ groupBar_server <- function(id, data_r, unit = "") {
     output$legend <- renderUI({
       
       df <- data_r()
+      req(is.data.frame(df), ncol(df) >= 2)
+
       values <- df[, -1, drop = FALSE]
       vars <- colnames(values)
       k <- ncol(values)
@@ -4146,12 +4155,15 @@ groupBar_server <- function(id, data_r, unit = "") {
     output$bars <- renderUI({
       
       df <- data_r()
+      req(is.data.frame(df), ncol(df) >= 2)
       
-      years  <- df$year
-      values <- df[, -1, drop = FALSE]
+      years  <- as.character(df[[1]])
+      values <- as.data.frame(lapply(df[, -1, drop = FALSE], function(x) suppressWarnings(as.numeric(x))))
       vars   <- colnames(values)
+      if (ncol(values) == 0) return(NULL)
+      if (all(is.na(as.matrix(values)))) return(NULL)
       
-      max_val <- max(values, na.rm = TRUE)
+      max_val <- max(as.matrix(values), na.rm = TRUE)
       
       n <- nrow(df)
       k <- ncol(values)
@@ -4173,7 +4185,7 @@ groupBar_server <- function(id, data_r, unit = "") {
                 
                 lapply(seq_len(k), function(j) {
                   
-                  val <- values[i, j]
+                  val <- values[[j]][i]
                   
                   height_pct <- if(max_val > 0){
                     (val / max_val) * 100
@@ -4187,7 +4199,7 @@ groupBar_server <- function(id, data_r, unit = "") {
                     ),
                     `data-index` = i,
                     `data-col`   = vars[j],
-                    paste0(round(val,1), unit)
+                    if (is.na(val)) "" else paste0(round(val,1), unit)
                   )
                 })
               )
@@ -4207,6 +4219,7 @@ groupBar_server <- function(id, data_r, unit = "") {
 
 
 groupBar_js <- function(id, df, unit){
+  label_col <- names(df)[1]
   
   json <- jsonlite::toJSON(df, auto_unbox = TRUE, dataframe = "rows")
   
@@ -4222,6 +4235,7 @@ groupBar_js <- function(id, df, unit){
 
       const data = ", json, ";
       const unit = '", unit, "';
+      const labelCol = '", label_col, "';
 
       graph.querySelectorAll('.group-bar').forEach(bar => {
 
@@ -4230,11 +4244,11 @@ groupBar_js <- function(id, df, unit){
           const index = Number(this.dataset.index) - 1;
           const row = data[index];
 
-          let html = `<div class='tooltip-title'>${row.year}</div>`;
+          let html = `<div class='tooltip-title'>${row[labelCol] ?? ''}</div>`;
 
           Object.keys(row).forEach(k => {
 
-            if(k === 'year') return;
+            if(k === labelCol) return;
 
             const v = Number(row[k] || 0);
 
