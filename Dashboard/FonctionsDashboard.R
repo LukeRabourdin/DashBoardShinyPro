@@ -518,19 +518,17 @@ dashboard_grid_css <- function() {
     .grid-span-4 { grid-column: span 4; }
     .grid-span-5 { grid-column: span 5; }
     .grid-span-middle {
-      grid-column: 1 / -1;
-      width: clamp(320px, 50vw, 100%);
+      grid-column: span 2;
+      width: 100%;
       max-width: 100%;
-      margin-inline: auto;
-      justify-self: center;
+      justify-self: stretch;
     }
 
     .grid-span-tier {
-      grid-column: 1 / -1;
-      width: clamp(300px, 33.333vw, 100%);
+      grid-column: span 1;
+      width: 100%;
       max-width: 100%;
-      margin-inline: auto;
-      justify-self: center;
+      justify-self: stretch;
     }
 
     .grid-span-full {
