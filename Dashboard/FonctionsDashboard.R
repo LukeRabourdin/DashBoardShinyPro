@@ -505,7 +505,7 @@ dashboard_grid_css <- function() {
   tags$style(HTML("
     .dashboard-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      grid-template-columns: repeat(6, minmax(0, 1fr));
       gap: 24px;
       align-items: start;
       grid-auto-flow: dense;
@@ -517,15 +517,16 @@ dashboard_grid_css <- function() {
     .grid-span-3 { grid-column: span 3; }
     .grid-span-4 { grid-column: span 4; }
     .grid-span-5 { grid-column: span 5; }
+    .grid-span-6 { grid-column: span 6; }
     .grid-span-middle {
-      grid-column: span 2;
+      grid-column: span 3;
       width: 100%;
       max-width: 100%;
       justify-self: stretch;
     }
 
     .grid-span-tier {
-      grid-column: span 1;
+      grid-column: span 2;
       width: 100%;
       max-width: 100%;
       justify-self: stretch;
@@ -885,7 +886,7 @@ ui_card <- function(
     title = NULL,
     subtitle = NULL,
     size = c("small", "normal", "large", "xlarge"),
-    span = c("span1", "span2", "span3", "span4", "span5", "spanmiddle", "spantier", "spanfull"),
+    span = c("span1", "span2", "span3", "span4", "span5", "span6", "spanmiddle", "spantier", "spanfull"),
     ...,
     scale = 1
 ) {
@@ -900,9 +901,10 @@ ui_card <- function(
     span3 = "grid-span-3",
     span4 = "grid-span-4",
     span5 = "grid-span-5",
+    span6 = "grid-span-6",
     spanmiddle = "grid-span-middle",
     spantier = "grid-span-tier",
-    spanfull = "grid-span-full"
+    spanfull = "grid-span-6"
   )
 
   tokens <- card_size_tokens(size = size, scale = scale)
