@@ -641,8 +641,8 @@ search_bar_css <- function() {
     }
 
     .suggestion-item {
-      padding: 10px 20px;
-      font-size: 10px;
+      padding: 14px 22px;
+      font-size: 14px;
       cursor: pointer;
       transition:
         background-color 0.15s ease,
@@ -711,6 +711,10 @@ search_server <- function(id, keys) {
     observeEvent(input$blur, {
       show_suggestions(FALSE)
     })
+
+    observeEvent(input$hide_suggestions, {
+      show_suggestions(FALSE)
+    })
     
     # -------------------------
     # Filtrage
@@ -727,7 +731,7 @@ search_server <- function(id, keys) {
       req(show_suggestions())
       req(input$query)
       
-      suggestions <- head(filtered_keys(), 6)
+      suggestions <- head(filtered_keys(), 10)
       if (length(suggestions) == 0) return(NULL)
       
       tags$div(
@@ -741,10 +745,12 @@ search_server <- function(id, keys) {
             onmousedown = sprintf(
               "
           Shiny.setInputValue('%s', '%s', {priority: 'event'});
+          Shiny.setInputValue('%s', Math.random(), {priority: 'event'});
           document.getElementById('%s').value = '%s';
           document.getElementById('%s').blur();
           ",
               session$ns("validated"), k,
+              session$ns("hide_suggestions"),
               session$ns("query"), k,
               session$ns("query")
             )
@@ -762,6 +768,8 @@ search_server <- function(id, keys) {
       query <- trimws(input$query)
       req(nzchar(query))
 
+      show_suggestions(FALSE)
+
       exact_match <- keys[tolower(keys) == tolower(query)]
       if (length(exact_match) > 0) {
         selected(exact_match[[1]])
@@ -778,6 +786,7 @@ search_server <- function(id, keys) {
     # Validation par suggestion
     # -------------------------
     observeEvent(input$validated, {
+      show_suggestions(FALSE)
       selected(input$validated)
     })
 
