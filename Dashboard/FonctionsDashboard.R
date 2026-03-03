@@ -515,7 +515,11 @@ dashboard_grid_css <- function() {
     .grid-span-1 { grid-column: span 1; }
     .grid-span-2 { grid-column: span 2; }
     .grid-span-3 { grid-column: span 3; }
-    .grid-span-full { grid-column: 1 / -1; }
+    .grid-span-4 { grid-column: span 4; }
+    .grid-span-5 { grid-column: span 5; }
+    .grid-span-middle { grid-column: 1 / -1; width: min(50%, 100%); justify-self: center; }
+    .grid-span-tier { grid-column: 1 / -1; width: min(33.333%, 100%); justify-self: center; }
+    .grid-span-full { grid-column: 1 / -1; width: 100%; }
     
   "))
 }
@@ -864,7 +868,7 @@ ui_card <- function(
     title = NULL,
     subtitle = NULL,
     size = c("small", "normal", "large", "xlarge"),
-    span = c("span1", "span2", "span3", "spanfull"),
+    span = c("span1", "span2", "span3", "span4", "span5", "spanmiddle", "spantier", "spanfull"),
     ...,
     scale = 1
 ) {
@@ -877,6 +881,10 @@ ui_card <- function(
     span1 = "grid-span-1",
     span2 = "grid-span-2",
     span3 = "grid-span-3",
+    span4 = "grid-span-4",
+    span5 = "grid-span-5",
+    spanmiddle = "grid-span-middle",
+    spantier = "grid-span-tier",
     spanfull = "grid-span-full"
   )
 
