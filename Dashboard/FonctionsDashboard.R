@@ -3293,6 +3293,10 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
       axis_ticks <- seq(axis_min, axis_max, by = step)
       axis_range <- max(axis_max - axis_min, 1e-9)
 
+      format_multiline_value <- function(x, digits = 1) {
+        format(round(x, digits), big.mark = " ", trim = TRUE, scientific = FALSE)
+      }
+
       margin_top <- height * 0.14
       margin_bottom <- height * 0.20
       margin_side <- width * 0.08
@@ -3379,9 +3383,9 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
               tick <- axis_ticks[i]
               y <- height - margin_bottom - ((tick - axis_min) / axis_range) * usable_h
               tick_label <- if (abs(tick - round(tick)) < 1e-9) {
-                paste0(sprintf("%.0f", tick), unit)
+                paste0(format_multiline_value(tick, digits = 0), unit)
               } else {
-                paste0(sprintf("%.1f", tick), unit)
+                paste0(format_multiline_value(tick, digits = 1), unit)
               }
 
               tagList(
@@ -3424,7 +3428,7 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
                     fill = colors[i],
                     `data-series` = series_names[i],
                     `data-year` = years[j],
-                    `data-value` = paste0(round(values[j], 1), unit),
+                    `data-value` = paste0(format_multiline_value(values[j], digits = 1), unit),
                     `data-color` = colors[i]
                   )
                 })
