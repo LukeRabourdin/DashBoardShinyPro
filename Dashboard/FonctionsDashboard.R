@@ -1,7 +1,7 @@
 relyens_chart_colors <- function(k) {
   base_colors <- c(
-    "#0057B8", "#13A3E8", "#5A46B8",
-    "#00B894", "#FF8A3D", "#E94E77"
+    "#038286", "#07b2e7", "#bd026f",
+    "#89c275", "#f5a173", "#696867"
   )
   rep(base_colors, length.out = k)
 }
@@ -9,20 +9,23 @@ relyens_chart_colors <- function(k) {
 design_tokens_css <- function() {
   tags$style(HTML("
     :root {
-      --brand-primary: #0057B8;
-      --brand-secondary: #13A3E8;
-      --brand-tertiary: #5A46B8;
-      --brand-accent: #00B894;
-      --text-primary: #16263A;
-      --text-secondary: #5D7088;
+      --brand-primary: #038286;
+      --brand-secondary: #07b2e7;
+      --brand-tertiary: #bd026f;
+      --brand-accent: #89c275;
+      --text-primary: #4d4d4d;
+      --text-secondary: #696867;
       --surface-glass: rgba(255, 255, 255, 0.72);
       --surface-strong: rgba(255, 255, 255, 0.9);
+      --gray-dark: #4d4d4d;
+      --gray-medium: #696867;
+      --gray-light: #A5A5A5;
       --surface-card: rgba(255, 255, 255, 0.78);
       --stroke-soft: rgba(255, 255, 255, 0.42);
       --stroke-strong: rgba(18, 55, 97, 0.12);
       --shadow-soft: 0 10px 32px rgba(14, 42, 84, 0.10);
       --shadow-strong: 0 20px 44px rgba(14, 42, 84, 0.16);
-      --shadow-focus: 0 14px 30px rgba(0, 87, 184, 0.18);
+      --shadow-focus: 0 14px 30px rgba(3, 130, 134, 0.18);
       --radius-md: 16px;
       --radius-lg: 26px;
       --motion-fast: 160ms;
@@ -30,8 +33,8 @@ design_tokens_css <- function() {
 
     body {
       background:
-        radial-gradient(circle at 8% 12%, rgba(19,163,232,0.18), transparent 32%),
-        radial-gradient(circle at 92% 10%, rgba(90,70,184,0.16), transparent 34%),
+        radial-gradient(circle at 8% 12%, rgba(7,178,231,0.18), transparent 32%),
+        radial-gradient(circle at 92% 10%, rgba(189,2,111,0.12), transparent 34%),
         linear-gradient(130deg, rgba(255,255,255,0.96), rgba(237,246,255,0.90) 55%, rgba(228,240,252,0.88));
       color: var(--text-primary);
       font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -2673,7 +2676,7 @@ france_map_kpi_css <- function() {
       height: 10px;
       border-radius: 999px;
       border: 1px solid rgba(18,52,90,0.22);
-      background: linear-gradient(90deg, #CFE2FF 0%, #13A3E8 50%, #0057B8 100%);
+      background: linear-gradient(90deg, #CFE2FF 0%, #07b2e7 50%, #038286 100%);
       margin: 4px 0 6px 0;
     }
 
@@ -2839,7 +2842,7 @@ france_map_kpi_server <- function(id, data_r) {
 
         val_range <- range(vals$value, na.rm = TRUE)
         has_vals <- all(is.finite(val_range))
-        pal <- grDevices::colorRampPalette(c("#CFE2FF", "#13A3E8", "#0057B8"))(100)
+        pal <- grDevices::colorRampPalette(c("#CFE2FF", "#07b2e7", "#038286"))(100)
         idx <- if (has_vals) {
           pmax(1, pmin(100, round((map_view$value - val_range[1]) / max(1e-9, diff(val_range)) * 99) + 1))
         } else {
@@ -2852,7 +2855,7 @@ france_map_kpi_server <- function(id, data_r) {
 
         par(mar = c(0, 0, 0, 0), xaxs = "i", yaxs = "i")
         plot(sf::st_geometry(map_view), col = fill_col, border = "#FFFFFF", lwd = 0.6, asp = 1)
-        plot(sf::st_geometry(target_ops), add = TRUE, border = "#5A46B8", lwd = 2.1)
+        plot(sf::st_geometry(target_ops), add = TRUE, border = "#bd026f", lwd = 2.1)
 
         label_df <- map_ops[map_ops$zone %in% c("Cible", "Limitrophes") & is.finite(map_ops$value), ]
         if (nrow(label_df) > 0) {
@@ -2972,7 +2975,7 @@ binary_kpi_css <- function() {
     }
 
     .binary-kpi-cell.value-1 {
-      background: linear-gradient(135deg, #13A3E8, #49BDF0);
+      background: linear-gradient(135deg, #07b2e7, #49BDF0);
       border-color: rgba(11, 122, 180, 0.76);
       box-shadow: 0 6px 16px rgba(19, 163, 232, 0.24);
     }
