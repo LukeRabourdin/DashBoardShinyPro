@@ -2289,6 +2289,17 @@ summary_kpi_server <- function(id, data_r, unit = "") {
       tags$div(class = "summary-kpi-fields", tagList(items))
     })
 
+    format_summary_indicator_value <- function(v) {
+      if (is.na(v)) return("-")
+
+      rounded <- round(v, 1)
+      if (abs(rounded - round(rounded)) < 1e-9) {
+        return(paste0(format(round(rounded), big.mark = " ", trim = TRUE, scientific = FALSE), unit))
+      }
+
+      paste0(format(rounded, nsmall = 1, big.mark = " ", trim = TRUE, scientific = FALSE), unit)
+    }
+
     output$indicators <- renderUI({
       d <- data_r()
       ind <- d$indicators
@@ -2307,7 +2318,7 @@ summary_kpi_server <- function(id, data_r, unit = "") {
 
         tags$tr(
           tags$td(labels[i]),
-          lapply(vals, function(v) tags$td(ifelse(is.na(v), "-", paste0(format(round(v, 1), nsmall = 1, trim = TRUE), unit)))),
+          lapply(vals, function(v) tags$td(format_summary_indicator_value(v))),
           tags$td(class = "summary-kpi-spark", sparkline_svg(vals)),
           tags$td(class = "summary-kpi-var", ifelse(is.na(var), "-", paste0(sprintf('%.1f', var), " %")))
         )
