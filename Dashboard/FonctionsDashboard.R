@@ -2647,9 +2647,17 @@ france_map_kpi_css <- function() {
       height: 100%;
       min-height: 0;
       border-radius: 12px;
-      overflow: hidden;
+      overflow: visible;
       background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(244,248,255,0.42));
       border: 1px solid rgba(185, 198, 214, 0.42);
+    }
+
+    .fr-map-kpi-wrap .shiny-plot-output,
+    .fr-map-kpi-wrap .shiny-plot-output img,
+    .fr-map-kpi-wrap .shiny-plot-output canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
     }
 
     .fr-map-kpi-legend {
@@ -2776,7 +2784,7 @@ france_map_kpi_server <- function(id, data_r) {
 
     plot_height <- reactive({
       h <- get_client_dim("height")
-      if (!is.finite(h) || h < 160) return(520)
+      if (!is.finite(h) || h < 120) return(320)
       h
     })
 
@@ -3096,10 +3104,17 @@ multilineplot_css <- function(){
     .multilineplot-container{
       width: 100%;
       flex: 1 1 auto;
+      min-width: 0;
       min-height: 120px;
       border-radius: 12px;
       background: linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0.10));
       position: relative;
+      overflow: visible;
+    }
+
+    .multilineplot-container svg {
+      display: block;
+      overflow: visible;
     }
 
     .multilineplot-legend-side {
@@ -3342,7 +3357,7 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
 
       margin_top <- height * 0.14
       margin_bottom <- height * 0.20
-      margin_side <- width * 0.08
+      margin_side <- max(46, width * 0.10)
 
       usable_h <- height - margin_top - margin_bottom
       usable_w <- width - (margin_side * 2)
@@ -3440,7 +3455,7 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
                   class = if (i == 1) "multiline-axis" else "multiline-grid"
                 ),
                 tags$text(
-                  x = margin_side - 6,
+                  x = margin_side - 10,
                   y = y + 3,
                   class = "multiline-yhint",
                   tick_label
@@ -4044,6 +4059,7 @@ groupBar_html_css <- function() {
 
 .group-graph{
   flex:1 1 auto;
+  min-width: 0;
   position:relative;
   display:flex;
   border-radius: 12px;
@@ -4059,10 +4075,11 @@ groupBar_html_css <- function() {
 .group-graph > .shiny-html-output{
   display:flex;
   align-items:flex-end;
-  justify-content:space-evenly;
-  gap:32px;
+  justify-content:space-between;
+  gap:clamp(8px, 2vw, 24px);
   width:100%;
   height:100%;
+  min-width:0;
 }
 
 /* ============================= */
@@ -4075,7 +4092,8 @@ groupBar_html_css <- function() {
   align-items:center;
   height:100%;
   flex:1 1 0;
-  max-width:120px;
+  min-width:0;
+  max-width:unset;
 }
 
 /* ============================= */
@@ -4094,7 +4112,7 @@ groupBar_html_css <- function() {
 .group-bars{
   display:flex;
   align-items:flex-end;
-  gap:7px;
+  gap:clamp(4px, 0.8vw, 7px);
   width:100%;
   height:100%;
   justify-content:center;
@@ -4106,7 +4124,7 @@ groupBar_html_css <- function() {
 
 .group-bar{
   position:relative;
-  width:20px;
+  width:clamp(12px, 1.25vw, 20px);
   border-radius:5px 5px 1px 1px;
   border: 1px solid rgba(255,255,255,0.18);
   display:flex;
