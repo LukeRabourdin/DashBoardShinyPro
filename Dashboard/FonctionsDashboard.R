@@ -1983,7 +1983,7 @@ special_kpi_css <- function() {
       color: #223b57;
       font-weight: 600;
       text-align: right;
-      font-size: 10px;
+      font-size: 9px;
     }
 
     .special-kpi-panel thead th:first-child,
@@ -2156,18 +2156,21 @@ summary_kpi_css <- function() {
       height: 100%;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      justify-content: space-between;
+      gap: 8px;
       min-height: 0;
       min-width: 0;
-      overflow: auto;
+      overflow: hidden;
     }
 
     .summary-kpi-fields {
-      flex: 0 0 auto;
+      flex: 1 1 auto;
+      min-height: 0;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px 12px;
-      padding: 10px 12px;
+      align-content: space-between;
+      gap: 4px 10px;
+      padding: 8px 10px;
       border: 1px solid rgba(185, 198, 214, 0.50);
       border-radius: 12px;
       background: linear-gradient(180deg, rgba(255,255,255,0.60), rgba(255,255,255,0.42));
@@ -2177,11 +2180,11 @@ summary_kpi_css <- function() {
       min-width: 0;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 1px;
     }
 
     .summary-kpi-label {
-      font-size: 10px;
+      font-size: 9px;
       text-transform: uppercase;
       letter-spacing: .04em;
       color: #627890;
@@ -2189,15 +2192,17 @@ summary_kpi_css <- function() {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      line-height: 1.1;
     }
 
     .summary-kpi-value {
-      font-size: 12px;
+      font-size: 11px;
       color: #1f334d;
       font-weight: 600;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      line-height: 1.15;
     }
 
     .summary-kpi-indicators {
@@ -2215,13 +2220,13 @@ summary_kpi_css <- function() {
       min-width: 0;
       border-collapse: collapse;
       table-layout: auto;
-      font-size: 10px;
+      font-size: 9px;
       color: #263c56;
     }
 
     .summary-kpi-indicators th,
     .summary-kpi-indicators td {
-      padding: 6px 7px;
+      padding: 4px 6px;
       border-bottom: 1px solid rgba(185, 198, 214, 0.35);
       text-align: right;
       white-space: nowrap;
@@ -2235,14 +2240,14 @@ summary_kpi_css <- function() {
       background: rgba(255,255,255,0.55);
       color: #223b57;
       font-weight: 600;
-      font-size: 10px;
+      font-size: 9px;
     }
 
     .summary-kpi-indicators thead th:first-child,
     .summary-kpi-indicators tbody td:first-child {
       text-align: left;
       width: 22%;
-      min-width: 120px;
+      min-width: 100px;
       color: #1f334d;
       font-weight: 500;
     }
