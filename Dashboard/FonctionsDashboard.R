@@ -2159,9 +2159,11 @@ summary_kpi_css <- function() {
       gap: 12px;
       min-height: 0;
       min-width: 0;
+      overflow: auto;
     }
 
     .summary-kpi-fields {
+      flex: 0 0 auto;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px 12px;
@@ -2199,6 +2201,7 @@ summary_kpi_css <- function() {
     }
 
     .summary-kpi-indicators {
+      flex: 0 0 auto;
       min-width: 0;
       border: 1px solid rgba(185, 198, 214, 0.50);
       border-radius: 12px;
