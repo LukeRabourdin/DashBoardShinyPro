@@ -2158,6 +2158,7 @@ summary_kpi_css <- function() {
       flex-direction: column;
       gap: 12px;
       min-height: 0;
+      min-width: 0;
     }
 
     .summary-kpi-fields {
@@ -2198,16 +2199,19 @@ summary_kpi_css <- function() {
     }
 
     .summary-kpi-indicators {
+      min-width: 0;
       border: 1px solid rgba(185, 198, 214, 0.50);
       border-radius: 12px;
       background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.38));
-      overflow: hidden;
+      overflow-x: auto;
+      overflow-y: hidden;
     }
 
     .summary-kpi-indicators table {
       width: 100%;
+      min-width: 0;
       border-collapse: collapse;
-      table-layout: fixed;
+      table-layout: auto;
       font-size: 10px;
       color: #263c56;
     }
@@ -2235,6 +2239,7 @@ summary_kpi_css <- function() {
     .summary-kpi-indicators tbody td:first-child {
       text-align: left;
       width: 22%;
+      min-width: 120px;
       color: #1f334d;
       font-weight: 500;
     }
