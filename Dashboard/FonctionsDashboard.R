@@ -2156,17 +2156,19 @@ summary_kpi_css <- function() {
       height: 100%;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
       min-height: 0;
       min-width: 0;
       overflow: hidden;
     }
 
     .summary-kpi-fields {
-      flex: 0 0 auto;
+      flex: 1 1 58%;
+      min-height: 0;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px 12px;
+      align-content: space-between;
+      gap: 6px 12px;
       padding: 10px 12px;
       border: 1px solid rgba(185, 198, 214, 0.50);
       border-radius: 12px;
@@ -2203,17 +2205,19 @@ summary_kpi_css <- function() {
     }
 
     .summary-kpi-indicators {
-      flex: 0 0 auto;
+      flex: 1 1 42%;
       min-width: 0;
+      min-height: 0;
+      display: flex;
       border: 1px solid rgba(185, 198, 214, 0.50);
       border-radius: 12px;
       background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.38));
-      overflow-x: auto;
-      overflow-y: hidden;
+      overflow: hidden;
     }
 
     .summary-kpi-indicators table {
       width: 100%;
+      height: 100%;
       min-width: 0;
       border-collapse: collapse;
       table-layout: auto;
@@ -2229,6 +2233,10 @@ summary_kpi_css <- function() {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    .summary-kpi-indicators tbody tr {
+      height: 33.333%;
     }
 
     .summary-kpi-indicators tr:last-child td { border-bottom: none; }
