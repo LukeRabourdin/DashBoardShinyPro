@@ -2162,9 +2162,24 @@ summary_kpi_css <- function() {
       overflow: hidden;
     }
 
-    .summary-kpi-fields {
-      flex: 1 1 58%;
+    .summary-kpi-wrap > .shiny-html-output {
+      min-width: 0;
       min-height: 0;
+      display: flex;
+    }
+
+    .summary-kpi-wrap > .shiny-html-output:first-child {
+      flex: 1 1 58%;
+    }
+
+    .summary-kpi-wrap > .shiny-html-output:last-child {
+      flex: 1 1 42%;
+    }
+
+    .summary-kpi-fields {
+      flex: 1 1 auto;
+      min-height: 0;
+      height: 100%;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       align-content: space-between;
@@ -2205,9 +2220,11 @@ summary_kpi_css <- function() {
     }
 
     .summary-kpi-indicators {
-      flex: 1 1 42%;
+      flex: 1 1 auto;
+      width: 100%;
       min-width: 0;
       min-height: 0;
+      height: 100%;
       display: flex;
       border: 1px solid rgba(185, 198, 214, 0.50);
       border-radius: 12px;
