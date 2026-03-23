@@ -1031,7 +1031,7 @@ create_multilineplot_card <- function(
 
   defaults <- switch(
     style,
-    executive = list(size = "large", span = "span2"),
+    executive = list(size = "xlarge", span = "span2"),
     compact   = list(size = "normal", span = "span2"),
     minimal   = list(size = "normal", span = "span1")
   )
@@ -1069,7 +1069,7 @@ create_special_kpi_card <- function(
 
   defaults <- switch(
     style,
-    executive = list(size = "large", span = "span2"),
+    executive = list(size = "xlarge", span = "span2"),
     compact   = list(size = "normal", span = "span2"),
     minimal   = list(size = "normal", span = "span1")
   )
@@ -1105,7 +1105,7 @@ create_summary_kpi_card <- function(
 
   defaults <- switch(
     style,
-    executive = list(size = "large", span = "span2"),
+    executive = list(size = "xlarge", span = "span2"),
     compact   = list(size = "normal", span = "span2"),
     minimal   = list(size = "normal", span = "span1")
   )
@@ -1213,7 +1213,7 @@ create_france_map_kpi_card <- function(
 
   defaults <- switch(
     style,
-    executive = list(size = "large", span = "span2"),
+    executive = list(size = "xlarge", span = "span2"),
     compact   = list(size = "normal", span = "span2"),
     minimal   = list(size = "normal", span = "span1")
   )
@@ -1249,7 +1249,7 @@ create_binary_kpi_card <- function(
 
   defaults <- switch(
     style,
-    executive = list(size = "large", span = "span2"),
+    executive = list(size = "xlarge", span = "span2"),
     compact   = list(size = "normal", span = "span2"),
     minimal   = list(size = "normal", span = "span1")
   )
@@ -1286,7 +1286,7 @@ create_groupbar_card <- function(
 
   defaults <- switch(
     style,
-    executive = list(size = "large", span = "span2"),
+    executive = list(size = "xlarge", span = "span2"),
     compact   = list(size = "normal", span = "span2"),
     minimal   = list(size = "normal", span = "span1")
   )
@@ -1324,7 +1324,7 @@ create_stackedbar_card <- function(
 
   defaults <- switch(
     style,
-    executive = list(size = "large", span = "span2"),
+    executive = list(size = "xlarge", span = "span2"),
     compact   = list(size = "normal", span = "span2"),
     minimal   = list(size = "normal", span = "span1")
   )
@@ -1548,7 +1548,7 @@ barplot_css <- function(){
     }
     
     .dribble-year {
-      font-size: 11px;
+      font-size: 12px;
       fill: #7a8ca3;
       text-anchor: middle;
       dominant-baseline: middle;
@@ -1761,7 +1761,7 @@ lineplot_css <- function(){
     }
 
     .line-year {
-      font-size: 11px;
+      font-size: 12px;
       fill: #7a8ca3;
       text-anchor: middle;
       font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -1983,7 +1983,7 @@ special_kpi_css <- function() {
       color: #223b57;
       font-weight: 600;
       text-align: right;
-      font-size: 9px;
+      font-size: 10px;
     }
 
     .special-kpi-panel thead th:first-child,
@@ -2007,7 +2007,7 @@ special_kpi_css <- function() {
       padding: 7px 10px 0;
       color: #233c59;
       font-weight: 600;
-      font-size: 11px;
+      font-size: 12px;
     }
 
     .special-kpi-spark svg {
@@ -2156,21 +2156,18 @@ summary_kpi_css <- function() {
       height: 100%;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      gap: 8px;
+      gap: 12px;
       min-height: 0;
       min-width: 0;
       overflow: hidden;
     }
 
     .summary-kpi-fields {
-      flex: 1 1 auto;
-      min-height: 0;
+      flex: 0 0 auto;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      align-content: space-between;
-      gap: 4px 10px;
-      padding: 8px 10px;
+      gap: 8px 12px;
+      padding: 10px 12px;
       border: 1px solid rgba(185, 198, 214, 0.50);
       border-radius: 12px;
       background: linear-gradient(180deg, rgba(255,255,255,0.60), rgba(255,255,255,0.42));
@@ -2180,11 +2177,11 @@ summary_kpi_css <- function() {
       min-width: 0;
       display: flex;
       flex-direction: column;
-      gap: 1px;
+      gap: 2px;
     }
 
     .summary-kpi-label {
-      font-size: 9px;
+      font-size: 10px;
       text-transform: uppercase;
       letter-spacing: .04em;
       color: #627890;
@@ -2192,17 +2189,17 @@ summary_kpi_css <- function() {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      line-height: 1.1;
+      line-height: 1.2;
     }
 
     .summary-kpi-value {
-      font-size: 11px;
+      font-size: 12px;
       color: #1f334d;
       font-weight: 600;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      line-height: 1.15;
+      line-height: 1.2;
     }
 
     .summary-kpi-indicators {
@@ -2220,13 +2217,13 @@ summary_kpi_css <- function() {
       min-width: 0;
       border-collapse: collapse;
       table-layout: auto;
-      font-size: 9px;
+      font-size: 10px;
       color: #263c56;
     }
 
     .summary-kpi-indicators th,
     .summary-kpi-indicators td {
-      padding: 4px 6px;
+      padding: 6px 7px;
       border-bottom: 1px solid rgba(185, 198, 214, 0.35);
       text-align: right;
       white-space: nowrap;
@@ -2240,14 +2237,14 @@ summary_kpi_css <- function() {
       background: rgba(255,255,255,0.55);
       color: #223b57;
       font-weight: 600;
-      font-size: 9px;
+      font-size: 10px;
     }
 
     .summary-kpi-indicators thead th:first-child,
     .summary-kpi-indicators tbody td:first-child {
       text-align: left;
       width: 22%;
-      min-width: 100px;
+      min-width: 120px;
       color: #1f334d;
       font-weight: 500;
     }
@@ -2372,7 +2369,7 @@ simple_table_kpi_css <- function() {
       width: 100%;
       border-collapse: collapse;
       table-layout: fixed;
-      font-size: 11px;
+      font-size: 12px;
       color: #263c56;
     }
 
@@ -2496,7 +2493,7 @@ global_score_kpi_css <- function() {
       color: #1f334d;
       font-weight: 650;
       font-size: 15px;
-      line-height: 1.1;
+      line-height: 1.2;
     }
 
     .global-score-kpi-year .lab {
@@ -2696,7 +2693,7 @@ france_map_kpi_css <- function() {
     }
 
     .fr-map-kpi-legend .legend-title {
-      font-size: 9px;
+      font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.04em;
       opacity: 0.78;
@@ -2955,7 +2952,7 @@ binary_kpi_css <- function() {
       border-spacing: 0 10px;
       table-layout: fixed;
       color: #2a3f58;
-      font-size: 11px;
+      font-size: 12px;
     }
 
     .binary-kpi-table th,
@@ -2966,7 +2963,7 @@ binary_kpi_css <- function() {
     }
 
     .binary-kpi-table thead th {
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 600;
       color: #607891;
       letter-spacing: 0.02em;
@@ -3137,7 +3134,7 @@ multilineplot_css <- function(){
       justify-content: center;
       align-items: flex-start;
       color: #5c6f85;
-      font-size: 11px;
+      font-size: 12px;
     }
 
     .multilineplot-legend-side .shiny-html-output {
@@ -3156,7 +3153,7 @@ multilineplot_css <- function(){
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 11px;
+      font-size: 12px;
       color: #5c6f85;
       font-weight: 400;
       line-height: 1.2;
@@ -3266,7 +3263,7 @@ multilineplot_css <- function(){
     }
 
     .multiline-year {
-      font-size: 11px;
+      font-size: 12px;
       fill: #7a8ca3;
       text-anchor: middle;
       font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -3573,7 +3570,7 @@ stackedBar_html_css <- function() {
   flex-direction: column;
   justify-content: center;
   gap: 10px;
-  font-size: 11px;
+  font-size: 12px;
   color: #5c6f85;
 }
 
@@ -3683,7 +3680,7 @@ stackedBar_html_css <- function() {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: white;
   transition: transform .2s ease;
@@ -3710,7 +3707,7 @@ stackedBar_html_css <- function() {
 /* year label */
 .stack-year{
   margin-top: 8px;
-  font-size: 11px;
+  font-size: 12px;
   color: #7a8ca3;
   text-align: center;
 }

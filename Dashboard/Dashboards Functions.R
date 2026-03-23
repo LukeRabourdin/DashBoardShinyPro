@@ -96,7 +96,7 @@ content_map <- list(
         scale = 1.00,
         title = "Synthèse sélection",
         subtitle = "10 champs + 3 indicateurs · exemple spanfull",
-        size = "large",
+        size = "xlarge",
         span = "spanfull"
       ),
       create_global_score_kpi_card(
