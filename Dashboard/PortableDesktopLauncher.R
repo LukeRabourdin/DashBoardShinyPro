@@ -6,12 +6,13 @@
 
 create_portable_desktop_launcher <- function(
     project_dir,
-    shiny_url = "http://127.0.0.1:3838",
+    shiny_url = NULL,
     splash_logo = "app/Emojis/loupe.png",
     splash_title = "Dashboard",
     splash_message = "Ouverture des packages et chargement des données"
 ) {
   project_dir <- normalizePath(project_dir, mustWork = TRUE)
+  if (is.null(shiny_url) || !nzchar(shiny_url)) shiny_url <- "__AUTO__"
 
   logs_dir <- file.path(project_dir, "logs")
   dir.create(logs_dir, recursive = TRUE, showWarnings = FALSE)
@@ -144,6 +145,28 @@ create_portable_desktop_launcher <- function(
       "  $LogsDir   = Join-Path $BaseDir 'logs'",
       "  $SplashHta = Join-Path $BaseDir 'splash.hta'",
       "  $LaunchR   = Join-Path $BaseDir 'launch.R'",
+      "  $RequestedUrl = '%s'",
+      "",
+      "  function Get-FreePort {",
+      "    $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, 0)",
+      "    $listener.Start()",
+      "    $port = $listener.LocalEndpoint.Port",
+      "    $listener.Stop()",
+      "    return $port",
+      "  }",
+      "",
+      "  $Port = $null",
+      "  if ($RequestedUrl -eq '__AUTO__') {",
+      "    $Port = Get-FreePort",
+      "    $ShinyUrl = 'http://127.0.0.1:' + $Port",
+      "  } else {",
+      "    $ShinyUrl = $RequestedUrl",
+      "    try {",
+      "      $uri = [System.Uri]$ShinyUrl",
+      "      if ($uri.Port -gt 0) { $Port = $uri.Port }",
+      "    } catch {}",
+      "  }",
+      "  if ($Port) { $env:SHINY_PORT = [string]$Port }",
       "",
       "  if (!(Test-Path $LogsDir)) {",
       "    New-Item -ItemType Directory -Path $LogsDir | Out-Null",
@@ -185,7 +208,7 @@ create_portable_desktop_launcher <- function(
       "    }",
       "",
       "    try {",
-      "      $resp = Invoke-WebRequest -Uri '%s' -UseBasicParsing -TimeoutSec 2",
+      "      $resp = Invoke-WebRequest -Uri $ShinyUrl -UseBasicParsing -TimeoutSec 2",
       "      if ($resp.StatusCode -ge 200 -and $resp.StatusCode -lt 500) {",
       "        $Ready = $true",
       "      }",
@@ -195,10 +218,10 @@ create_portable_desktop_launcher <- function(
       "  }",
       "",
       "  if (-not $Ready) {",
-      "    throw 'Timeout: l''application ne répond pas sur %s'",
+      "    throw ('Timeout: l''application ne répond pas sur ' + $ShinyUrl)",
       "  }",
       "",
-      "  Start-Process '%s'",
+      "  Start-Process $ShinyUrl",
       "",
       "  if ($SplashProc -and -not $SplashProc.HasExited) {",
       "    Stop-Process -Id $SplashProc.Id -Force",
@@ -224,7 +247,6 @@ create_portable_desktop_launcher <- function(
       "}",
       sep = "\n"
     ),
-    shiny_url,
     shiny_url,
     shiny_url
   )
