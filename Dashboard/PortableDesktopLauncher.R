@@ -136,92 +136,94 @@ create_portable_desktop_launcher <- function(
   writeLines(splash_html, splash_path, useBytes = TRUE)
 
   ps1_script <- sprintf(
-"$ErrorActionPreference = 'Stop'
-
-try {
-  $BaseDir   = Split-Path -Parent $MyInvocation.MyCommand.Path
-  $LogsDir   = Join-Path $BaseDir 'logs'
-  $SplashHta = Join-Path $BaseDir 'splash.hta'
-  $LaunchR   = Join-Path $BaseDir 'launch.R'
-
-  if (!(Test-Path $LogsDir)) {
-    New-Item -ItemType Directory -Path $LogsDir | Out-Null
-  }
-
-  $TimeTag = Get-Date -Format 'yyyyMMdd_HHmmss'
-  $StdOut  = Join-Path $LogsDir ('startup_' + $TimeTag + '.log')
-  $StdErr  = Join-Path $LogsDir ('startup_' + $TimeTag + '_error.log')
-
-  $RExe = Join-Path $BaseDir 'R-mini\\R\\bin\\R.exe'
-  if (!(Test-Path $RExe)) {
-    $RExe = Join-Path $BaseDir 'R-mini\\R\\bin\\x64\\R.exe'
-  }
-  if (!(Test-Path $RExe)) {
-    throw 'R.exe introuvable dans R-mini.'
-  }
-  if (!(Test-Path $LaunchR)) {
-    throw 'launch.R introuvable.'
-  }
-
-  $SplashProc = Start-Process -FilePath 'mshta.exe' -ArgumentList ('"' + $SplashHta + '"') -PassThru
-
-  $RProc = Start-Process `
-    -FilePath $RExe `
-    -ArgumentList ('--vanilla -f "' + $LaunchR + '"') `
-    -WorkingDirectory $BaseDir `
-    -WindowStyle Hidden `
-    -RedirectStandardOutput $StdOut `
-    -RedirectStandardError $StdErr `
-    -PassThru
-
-  $Ready = $false
-  $Deadline = (Get-Date).AddSeconds(120)
-  while ((Get-Date) -lt $Deadline -and -not $Ready) {
-    Start-Sleep -Milliseconds 500
-
-    if ($RProc.HasExited) {
-      throw 'Le process R s''est arrêté pendant le démarrage.'
-    }
-
-    try {
-      $resp = Invoke-WebRequest -Uri '%s' -UseBasicParsing -TimeoutSec 2
-      if ($resp.StatusCode -ge 200 -and $resp.StatusCode -lt 500) {
-        $Ready = $true
-      }
-    } catch {
-      # continue polling
-    }
-  }
-
-  if (-not $Ready) {
-    throw 'Timeout: l''application ne répond pas sur %s'
-  }
-
-  Start-Process '%s'
-
-  if ($SplashProc -and -not $SplashProc.HasExited) {
-    Stop-Process -Id $SplashProc.Id -Force
-  }
-
-  exit 0
-}
-catch {
-  try {
-    if ($SplashProc -and -not $SplashProc.HasExited) {
-      Stop-Process -Id $SplashProc.Id -Force
-    }
-  } catch {}
-
-  Add-Type -AssemblyName System.Windows.Forms
-  [System.Windows.Forms.MessageBox]::Show(
-    'Le lancement de l''application a échoué.' + "`n`n" + $_.Exception.Message + "`n`nConsultez le dossier logs.",
-    'Erreur de lancement',
-    [System.Windows.Forms.MessageBoxButtons]::OK,
-    [System.Windows.Forms.MessageBoxIcon]::Error
-  ) | Out-Null
-  exit 1
-}
-",
+    paste(
+      "$ErrorActionPreference = 'Stop'",
+      "",
+      "try {",
+      "  $BaseDir   = Split-Path -Parent $MyInvocation.MyCommand.Path",
+      "  $LogsDir   = Join-Path $BaseDir 'logs'",
+      "  $SplashHta = Join-Path $BaseDir 'splash.hta'",
+      "  $LaunchR   = Join-Path $BaseDir 'launch.R'",
+      "",
+      "  if (!(Test-Path $LogsDir)) {",
+      "    New-Item -ItemType Directory -Path $LogsDir | Out-Null",
+      "  }",
+      "",
+      "  $TimeTag = Get-Date -Format 'yyyyMMdd_HHmmss'",
+      "  $StdOut  = Join-Path $LogsDir ('startup_' + $TimeTag + '.log')",
+      "  $StdErr  = Join-Path $LogsDir ('startup_' + $TimeTag + '_error.log')",
+      "",
+      "  $RExe = Join-Path $BaseDir 'R-mini\\\\R\\\\bin\\\\R.exe'",
+      "  if (!(Test-Path $RExe)) {",
+      "    $RExe = Join-Path $BaseDir 'R-mini\\\\R\\\\bin\\\\x64\\\\R.exe'",
+      "  }",
+      "  if (!(Test-Path $RExe)) {",
+      "    throw 'R.exe introuvable dans R-mini.'",
+      "  }",
+      "  if (!(Test-Path $LaunchR)) {",
+      "    throw 'launch.R introuvable.'",
+      "  }",
+      "",
+      "  $SplashProc = Start-Process -FilePath 'mshta.exe' -ArgumentList ('\"' + $SplashHta + '\"') -PassThru",
+      "",
+      "  $RProc = Start-Process `",
+      "    -FilePath $RExe `",
+      "    -ArgumentList ('--vanilla -f \"' + $LaunchR + '\"') `",
+      "    -WorkingDirectory $BaseDir `",
+      "    -WindowStyle Hidden `",
+      "    -RedirectStandardOutput $StdOut `",
+      "    -RedirectStandardError $StdErr `",
+      "    -PassThru",
+      "",
+      "  $Ready = $false",
+      "  $Deadline = (Get-Date).AddSeconds(120)",
+      "  while ((Get-Date) -lt $Deadline -and -not $Ready) {",
+      "    Start-Sleep -Milliseconds 500",
+      "",
+      "    if ($RProc.HasExited) {",
+      "      throw 'Le process R s''est arrêté pendant le démarrage.'",
+      "    }",
+      "",
+      "    try {",
+      "      $resp = Invoke-WebRequest -Uri '%s' -UseBasicParsing -TimeoutSec 2",
+      "      if ($resp.StatusCode -ge 200 -and $resp.StatusCode -lt 500) {",
+      "        $Ready = $true",
+      "      }",
+      "    } catch {",
+      "      # continue polling",
+      "    }",
+      "  }",
+      "",
+      "  if (-not $Ready) {",
+      "    throw 'Timeout: l''application ne répond pas sur %s'",
+      "  }",
+      "",
+      "  Start-Process '%s'",
+      "",
+      "  if ($SplashProc -and -not $SplashProc.HasExited) {",
+      "    Stop-Process -Id $SplashProc.Id -Force",
+      "  }",
+      "",
+      "  exit 0",
+      "}",
+      "catch {",
+      "  try {",
+      "    if ($SplashProc -and -not $SplashProc.HasExited) {",
+      "      Stop-Process -Id $SplashProc.Id -Force",
+      "    }",
+      "  } catch {}",
+      "",
+      "  Add-Type -AssemblyName System.Windows.Forms",
+      "  [System.Windows.Forms.MessageBox]::Show(",
+      "    'Le lancement de l''application a échoué.' + \"`n`n\" + $_.Exception.Message + \"`n`nConsultez le dossier logs.\",",
+      "    'Erreur de lancement',",
+      "    [System.Windows.Forms.MessageBoxButtons]::OK,",
+      "    [System.Windows.Forms.MessageBoxIcon]::Error",
+      "  ) | Out-Null",
+      "  exit 1",
+      "}",
+      sep = "\n"
+    ),
     shiny_url,
     shiny_url,
     shiny_url
