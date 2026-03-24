@@ -1,24 +1,20 @@
 # Génère un lanceur desktop « pro » pour un bundle Shiny portable.
-# - Splash screen (logo + animation 3 points)
-# - Lancement R sans console visible
-# - Attente active du serveur puis ouverture du navigateur
-# - Logs stdout/stderr
+# Version compatible avec environnements d'entreprise limitant PowerShell.
+# - Splash screen HTA (logo + animation 3 points)
+# - Lancement R via VBS (console cachée)
+# - Fermeture du splash après délai configurable
 
 create_portable_desktop_launcher <- function(
     project_dir,
-    shiny_url = NULL,
+    r_exe_rel_win = "R-mini\\R\\bin\\R.exe",
     splash_logo = "app/Emojis/loupe.png",
     splash_title = "Dashboard",
-    splash_message = "Ouverture des packages et chargement des données"
+    splash_message = "Ouverture des packages et chargement des données",
+    splash_timeout_sec = 25
 ) {
   project_dir <- normalizePath(project_dir, mustWork = TRUE)
-  if (is.null(shiny_url) || !nzchar(shiny_url)) shiny_url <- "__AUTO__"
-
-  logs_dir <- file.path(project_dir, "logs")
-  dir.create(logs_dir, recursive = TRUE, showWarnings = FALSE)
 
   splash_path <- file.path(project_dir, "splash.hta")
-  ps1_path <- file.path(project_dir, "wait_and_open.ps1")
   vbs_path <- file.path(project_dir, "run_app.vbs")
   bat_path <- file.path(project_dir, "run_app_debug.bat")
 
@@ -133,156 +129,66 @@ create_portable_desktop_launcher <- function(
     splash_title,
     splash_message
   )
-
   writeLines(splash_html, splash_path, useBytes = TRUE)
 
-  ps1_script <- sprintf(
-    paste(
-      "$ErrorActionPreference = 'Stop'",
-      "",
-      "try {",
-      "  $BaseDir   = Split-Path -Parent $MyInvocation.MyCommand.Path",
-      "  $LogsDir   = Join-Path $BaseDir 'logs'",
-      "  $SplashHta = Join-Path $BaseDir 'splash.hta'",
-      "  $LaunchR   = Join-Path $BaseDir 'launch.R'",
-      "  $RequestedUrl = '%s'",
-      "",
-      "  function Get-FreePort {",
-      "    $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, 0)",
-      "    $listener.Start()",
-      "    $port = $listener.LocalEndpoint.Port",
-      "    $listener.Stop()",
-      "    return $port",
-      "  }",
-      "",
-      "  $Port = $null",
-      "  if ($RequestedUrl -eq '__AUTO__') {",
-      "    $Port = Get-FreePort",
-      "    $ShinyUrl = 'http://127.0.0.1:' + $Port",
-      "  } else {",
-      "    $ShinyUrl = $RequestedUrl",
-      "    try {",
-      "      $uri = [System.Uri]$ShinyUrl",
-      "      if ($uri.Port -gt 0) { $Port = $uri.Port }",
-      "    } catch {}",
-      "  }",
-      "  if ($Port) { $env:SHINY_PORT = [string]$Port }",
-      "",
-      "  if (!(Test-Path $LogsDir)) {",
-      "    New-Item -ItemType Directory -Path $LogsDir | Out-Null",
-      "  }",
-      "",
-      "  $TimeTag = Get-Date -Format 'yyyyMMdd_HHmmss'",
-      "  $StdOut  = Join-Path $LogsDir ('startup_' + $TimeTag + '.log')",
-      "  $StdErr  = Join-Path $LogsDir ('startup_' + $TimeTag + '_error.log')",
-      "",
-      "  $RExe = Join-Path $BaseDir 'R-mini\\\\R\\\\bin\\\\R.exe'",
-      "  if (!(Test-Path $RExe)) {",
-      "    $RExe = Join-Path $BaseDir 'R-mini\\\\R\\\\bin\\\\x64\\\\R.exe'",
-      "  }",
-      "  if (!(Test-Path $RExe)) {",
-      "    throw 'R.exe introuvable dans R-mini.'",
-      "  }",
-      "  if (!(Test-Path $LaunchR)) {",
-      "    throw 'launch.R introuvable.'",
-      "  }",
-      "",
-      "  $SplashProc = Start-Process -FilePath 'mshta.exe' -ArgumentList ('\"' + $SplashHta + '\"') -PassThru",
-      "",
-      "  $RProc = Start-Process `",
-      "    -FilePath $RExe `",
-      "    -ArgumentList ('--vanilla -f \"' + $LaunchR + '\"') `",
-      "    -WorkingDirectory $BaseDir `",
-      "    -WindowStyle Hidden `",
-      "    -RedirectStandardOutput $StdOut `",
-      "    -RedirectStandardError $StdErr `",
-      "    -PassThru",
-      "",
-      "  $Ready = $false",
-      "  $Deadline = (Get-Date).AddSeconds(120)",
-      "  while ((Get-Date) -lt $Deadline -and -not $Ready) {",
-      "    Start-Sleep -Milliseconds 500",
-      "",
-      "    if ($RProc.HasExited) {",
-      "      throw 'Le process R s''est arrêté pendant le démarrage.'",
-      "    }",
-      "",
-      "    try {",
-      "      $resp = Invoke-WebRequest -Uri $ShinyUrl -UseBasicParsing -TimeoutSec 2",
-      "      if ($resp.StatusCode -ge 200 -and $resp.StatusCode -lt 500) {",
-      "        $Ready = $true",
-      "      }",
-      "    } catch {",
-      "      # continue polling",
-      "    }",
-      "  }",
-      "",
-      "  if (-not $Ready) {",
-      "    throw ('Timeout: l''application ne répond pas sur ' + $ShinyUrl)",
-      "  }",
-      "",
-      "  Start-Process $ShinyUrl",
-      "",
-      "  if ($SplashProc -and -not $SplashProc.HasExited) {",
-      "    Stop-Process -Id $SplashProc.Id -Force",
-      "  }",
-      "",
-      "  exit 0",
-      "}",
-      "catch {",
-      "  try {",
-      "    if ($SplashProc -and -not $SplashProc.HasExited) {",
-      "      Stop-Process -Id $SplashProc.Id -Force",
-      "    }",
-      "  } catch {}",
-      "",
-      "  Add-Type -AssemblyName System.Windows.Forms",
-      "  [System.Windows.Forms.MessageBox]::Show(",
-      "    'Le lancement de l''application a échoué.' + \"`n`n\" + $_.Exception.Message + \"`n`nConsultez le dossier logs.\",",
-      "    'Erreur de lancement',",
-      "    [System.Windows.Forms.MessageBoxButtons]::OK,",
-      "    [System.Windows.Forms.MessageBoxIcon]::Error",
-      "  ) | Out-Null",
-      "  exit 1",
-      "}",
-      sep = "\n"
-    ),
-    shiny_url,
-    shiny_url
-  )
-
-  writeLines(ps1_script, ps1_path, useBytes = TRUE)
-
-  vbs_script <-
+  vbs_script <- sprintf(
 'Option Explicit
-Dim shell, fso, appDir, ps1Path, cmd
+Dim shell, fso, appDir, cmd, splashPath, i, svc, procs, p
 Set shell = CreateObject("WScript.Shell")
 Set fso = CreateObject("Scripting.FileSystemObject")
 appDir = fso.GetParentFolderName(WScript.ScriptFullName)
-ps1Path = appDir & "\\wait_and_open.ps1"
-cmd = "powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File """ & ps1Path & """"
 shell.CurrentDirectory = appDir
+
+'' Splash screen
+splashPath = appDir & "\\splash.hta"
+shell.Run "mshta.exe """ & splashPath & """", 0, False
+
+'' Lancement R (logique historique conservée)
+cmd = "cmd /c set ""R_PROFILE_USER="" && set ""R_ENVIRON_USER="" && set ""R_LIBS_USER="" && set ""R_LIBS_SITE="" && """ & appDir & "\\%s"" --vanilla -f launch.R"
 shell.Run cmd, 0, False
-'
+
+'' Délai d''affichage du splash pendant le chargement
+For i = 1 To %d
+  WScript.Sleep 1000
+Next
+
+'' Fermeture du splash (mshta ciblé sur splash.hta)
+On Error Resume Next
+Set svc = GetObject("winmgmts:\\\\.\\root\\cimv2")
+Set procs = svc.ExecQuery("SELECT * FROM Win32_Process WHERE Name = ''''mshta.exe''''")
+For Each p In procs
+  If InStr(1, p.CommandLine, "splash.hta", 1) > 0 Then
+    p.Terminate
+  End If
+Next
+On Error GoTo 0
+',
+    r_exe_rel_win,
+    as.integer(splash_timeout_sec)
+  )
   writeLines(vbs_script, vbs_path, useBytes = TRUE)
 
-  bat_script <-
+  bat_script <- sprintf(
 '@echo off
-cd /d "%~dp0"
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0wait_and_open.ps1"
+cd /d "%%~dp0"
+set "R_PROFILE_USER="
+set "R_ENVIRON_USER="
+set "R_LIBS_USER="
+set "R_LIBS_SITE="
+"%%~dp0%s" --vanilla -f launch.R
 pause
-'
+',
+    r_exe_rel_win
+  )
   writeLines(bat_script, bat_path, useBytes = TRUE)
 
   message('✔ Lanceur desktop créé :')
   message('  - ', splash_path)
-  message('  - ', ps1_path)
   message('  - ', vbs_path)
   message('  - ', bat_path)
 
   invisible(list(
     splash = splash_path,
-    powershell = ps1_path,
     vbs = vbs_path,
     bat = bat_path
   ))
