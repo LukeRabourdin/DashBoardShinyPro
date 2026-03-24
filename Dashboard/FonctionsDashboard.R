@@ -1,7 +1,7 @@
 relyens_chart_colors <- function(k) {
   base_colors <- c(
-    "#0057B8", "#13A3E8", "#5A46B8",
-    "#00B894", "#FF8A3D", "#E94E77"
+    "#038286", "#07b2e7", "#bd026f",
+    "#89c275", "#f5a173", "#696867"
   )
   rep(base_colors, length.out = k)
 }
@@ -9,30 +9,33 @@ relyens_chart_colors <- function(k) {
 design_tokens_css <- function() {
   tags$style(HTML("
     :root {
-      --brand-primary: #0057B8;
-      --brand-secondary: #13A3E8;
-      --brand-tertiary: #5A46B8;
-      --brand-accent: #00B894;
-      --text-primary: #16263A;
-      --text-secondary: #5D7088;
+      --brand-primary: #038286;
+      --brand-secondary: #07b2e7;
+      --brand-tertiary: #bd026f;
+      --brand-accent: #89c275;
+      --text-primary: #4d4d4d;
+      --text-secondary: #696867;
       --surface-glass: rgba(255, 255, 255, 0.72);
       --surface-strong: rgba(255, 255, 255, 0.9);
+      --gray-dark: #4d4d4d;
+      --gray-medium: #696867;
+      --gray-light: #A5A5A5;
       --surface-card: rgba(255, 255, 255, 0.78);
       --stroke-soft: rgba(255, 255, 255, 0.42);
       --stroke-strong: rgba(18, 55, 97, 0.12);
       --shadow-soft: 0 10px 32px rgba(14, 42, 84, 0.10);
       --shadow-strong: 0 20px 44px rgba(14, 42, 84, 0.16);
-      --shadow-focus: 0 14px 30px rgba(0, 87, 184, 0.18);
-      --radius-md: 12px;
-      --radius-lg: 16px;
+      --shadow-focus: 0 14px 30px rgba(3, 130, 134, 0.18);
+      --radius-md: 16px;
+      --radius-lg: 26px;
       --motion-fast: 160ms;
     }
 
     body {
       background:
-        radial-gradient(circle at 8% 0%, rgba(19,163,232,0.14), transparent 36%),
-        radial-gradient(circle at 90% 6%, rgba(90,70,184,0.12), transparent 32%),
-        linear-gradient(180deg, #F7FAFF 0%, #EEF3FB 100%);
+        radial-gradient(circle at 8% 12%, rgba(7,178,231,0.18), transparent 32%),
+        radial-gradient(circle at 92% 10%, rgba(189,2,111,0.12), transparent 34%),
+        linear-gradient(130deg, rgba(255,255,255,0.96), rgba(237,246,255,0.90) 55%, rgba(228,240,252,0.88));
       color: var(--text-primary);
       font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       letter-spacing: 0.01em;
@@ -63,7 +66,7 @@ header_css <- function() {
       background: linear-gradient(120deg, rgba(255,255,255,0.92), rgba(237,246,255,0.78));
       border-bottom: 1px solid var(--stroke-soft);
       backdrop-filter: blur(10px) saturate(130%);
-      box-shadow: var(--shadow-soft);
+      box-shadow: 0 8px 18px rgba(31, 67, 109, 0.10), 0 1px 3px rgba(31, 67, 109, 0.07), inset 0 1px 0 rgba(255,255,255,0.76);
 
       overflow: hidden;
     }
@@ -127,21 +130,168 @@ header_css <- function() {
   "))
 }
 
+
+dashboard_layout_css <- function() {
+  tags$style(HTML(" 
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .top-toolbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1100;
+      height: 90px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 24px;
+      background:
+        radial-gradient(circle at 8% 20%, rgba(19,163,232,0.16), transparent 34%),
+        radial-gradient(circle at 92% 20%, rgba(90,70,184,0.14), transparent 34%),
+        linear-gradient(120deg, rgba(255,255,255,0.94), rgba(237,246,255,0.86));
+      border-bottom: 1px solid rgba(185, 198, 214, 0.50);
+      box-shadow: 0 10px 26px rgba(14, 42, 84, 0.12);
+      backdrop-filter: blur(8px) saturate(125%);
+    }
+
+    .top-toolbar-title {
+      justify-self: start;
+      font-size: 22px;
+      font-weight: 650;
+      color: #1f334d;
+      white-space: nowrap;
+      padding-left: 4px;
+    }
+
+    .top-toolbar-center {
+      justify-self: center;
+      width: min(980px, 70vw);
+    }
+
+    .top-toolbar-center .search-container {
+      margin: 0;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .top-toolbar-center .search-box {
+      width: 100%;
+    }
+
+    .top-toolbar-spacer {
+      justify-self: end;
+      width: 160px;
+      height: 1px;
+    }
+
+    .debug-key-wrap {
+      margin: 94px 24px 0 24px;
+      color: #53657a;
+      font-size: 13px;
+      min-height: 18px;
+    }
+
+    .tabs-bar {
+      position: sticky;
+      top: 86px;
+      z-index: 1050;
+      margin: 98px 24px 10px 24px;
+    }
+
+    .tabs-content {
+      height: calc(100vh - 160px) !important;
+      padding-top: 12px;
+    }
+  "))
+}
+
 container_size_js <- function() {
   tags$script(HTML("
-Shiny.addCustomMessageHandler('measure_container', function(message) {
+(function(){
+  const observers = {};
+  const lastSize = {};
 
-  const el = document.getElementById(message.id);
-  if (!el) return;
+  function emitSize(el){
+    if (!el || !el.id) return;
+    const rect = el.getBoundingClientRect();
+    const width = Math.round(rect.width || 0);
+    const height = Math.round(rect.height || 0);
+    const prev = lastSize[el.id];
 
-  const rect = el.getBoundingClientRect();
+    if (prev && prev.width === width && prev.height === height) return;
 
-  Shiny.setInputValue(message.id + '_size', {
-    width: rect.width,
-    height: rect.height
-  }, {priority: 'event'});
+    lastSize[el.id] = { width: width, height: height };
 
-});
+    Shiny.setInputValue(el.id + '_size', {
+      width: width,
+      height: height
+    }, {priority: 'event'});
+  }
+
+  function ensureObserver(el){
+    if (!el || !el.id || observers[el.id]) return;
+    if (typeof ResizeObserver === 'undefined') return;
+
+    const ro = new ResizeObserver(function(){ emitSize(el); });
+    ro.observe(el);
+    observers[el.id] = ro;
+  }
+
+  function measureAllContainers(){
+    document.querySelectorAll(\"[id$='-container']\").forEach(function(el){
+      emitSize(el);
+      ensureObserver(el);
+    });
+  }
+
+  Shiny.addCustomMessageHandler('measure_container', function(message) {
+    const el = document.getElementById(message.id);
+    if (!el) {
+      setTimeout(measureAllContainers, 80);
+      return;
+    }
+    emitSize(el);
+    ensureObserver(el);
+  });
+
+  window.addEventListener('resize', function(){
+    measureAllContainers();
+  });
+
+  document.addEventListener('click', function(e){
+    if (e.target && e.target.classList && e.target.classList.contains('tab-btn')) {
+      setTimeout(measureAllContainers, 80);
+    }
+  });
+
+
+  Shiny.addCustomMessageHandler('flash_cards', function() {
+    document.querySelectorAll('.ui-card').forEach(function(card){
+      card.classList.remove('is-refreshing');
+      void card.offsetWidth;
+      card.classList.add('is-refreshing');
+      setTimeout(function(){
+        card.classList.remove('is-refreshing');
+      }, 420);
+    });
+  });
+
+  const root = document.body;
+  if (typeof MutationObserver !== 'undefined' && root) {
+    const mo = new MutationObserver(function(){
+      setTimeout(measureAllContainers, 0);
+    });
+    mo.observe(root, { childList: true, subtree: true });
+  }
+
+  setTimeout(measureAllContainers, 0);
+  setTimeout(measureAllContainers, 120);
+})();
 "))
 
 
@@ -233,17 +383,17 @@ tabs_css <- function() {
       display: flex;
       gap: 12px;
       padding: 10px 24px;
-      background: var(--surface-card);
+      background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(238,246,255,0.88));
       border: 1px solid var(--stroke-soft);
-      border-radius: 14px;
+      border-radius: 22px;
       backdrop-filter: blur(10px);
-      box-shadow: var(--shadow-soft);
+      box-shadow: 0 8px 18px rgba(31, 67, 109, 0.10), 0 1px 3px rgba(31, 67, 109, 0.07), inset 0 1px 0 rgba(255,255,255,0.76);
       margin-bottom: 12px;
     }
 
     .tab-btn {
       padding: 8px 14px;
-      border-radius: 10px;
+      border-radius: 16px;
       border: none;
       background: transparent;
       font-size: 13px;
@@ -290,7 +440,10 @@ tabs_css <- function() {
       height: calc(100vh - 140px); /* header + tabs */
       overflow-y: auto;
       padding: 24px;
-      background: transparent;
+      background:
+        radial-gradient(circle at 8% -6%, rgba(19,163,232,0.10), transparent 34%),
+        radial-gradient(circle at 96% -10%, rgba(90,70,184,0.09), transparent 30%),
+        linear-gradient(180deg, rgba(248,252,255,0.92), rgba(238,245,253,0.90));
     }
   "))
 }
@@ -355,7 +508,7 @@ dashboard_grid_css <- function() {
   tags$style(HTML("
     .dashboard-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      grid-template-columns: repeat(6, minmax(0, 1fr));
       gap: 24px;
       align-items: start;
       grid-auto-flow: dense;
@@ -365,7 +518,29 @@ dashboard_grid_css <- function() {
     .grid-span-1 { grid-column: span 1; }
     .grid-span-2 { grid-column: span 2; }
     .grid-span-3 { grid-column: span 3; }
-    .grid-span-full { grid-column: 1 / -1; }
+    .grid-span-4 { grid-column: span 4; }
+    .grid-span-5 { grid-column: span 5; }
+    .grid-span-6 { grid-column: span 6; }
+    .grid-span-middle {
+      grid-column: span 3;
+      width: 100%;
+      max-width: 100%;
+      justify-self: stretch;
+    }
+
+    .grid-span-tier {
+      grid-column: span 2;
+      width: 100%;
+      max-width: 100%;
+      justify-self: stretch;
+    }
+
+    .grid-span-full {
+      grid-column: 1 / -1;
+      width: 100%;
+      max-width: 100%;
+      justify-self: stretch;
+    }
     
   "))
 }
@@ -397,7 +572,7 @@ search_bar_css <- function() {
     }
 
     .search-box {
-      width: min(620px, 92vw);
+      width: min(860px, 96vw);
       position: relative; /* reference pour le bouton */
     }
 
@@ -412,8 +587,8 @@ search_bar_css <- function() {
       font-weight: 500;
       color: #1f2d3d;
 
-      border-radius: 14px;
-      border: 1px solid var(--stroke-strong);
+      border-radius: 20px;
+      border: 1px solid rgba(170, 188, 210, 0.56);
       background-color: var(--surface-strong);
       backdrop-filter: blur(10px);
       outline: none;
@@ -491,8 +666,8 @@ search_bar_css <- function() {
     }
 
     .suggestion-item {
-      padding: 10px 20px;
-      font-size: 10px;
+      padding: 14px 22px;
+      font-size: 14px;
       cursor: pointer;
       transition:
         background-color 0.15s ease,
@@ -561,6 +736,10 @@ search_server <- function(id, keys) {
     observeEvent(input$blur, {
       show_suggestions(FALSE)
     })
+
+    observeEvent(input$hide_suggestions, {
+      show_suggestions(FALSE)
+    })
     
     # -------------------------
     # Filtrage
@@ -577,7 +756,7 @@ search_server <- function(id, keys) {
       req(show_suggestions())
       req(input$query)
       
-      suggestions <- head(filtered_keys(), 6)
+      suggestions <- head(filtered_keys(), 10)
       if (length(suggestions) == 0) return(NULL)
       
       tags$div(
@@ -591,10 +770,12 @@ search_server <- function(id, keys) {
             onmousedown = sprintf(
               "
           Shiny.setInputValue('%s', '%s', {priority: 'event'});
+          Shiny.setInputValue('%s', Math.random(), {priority: 'event'});
           document.getElementById('%s').value = '%s';
           document.getElementById('%s').blur();
           ",
               session$ns("validated"), k,
+              session$ns("hide_suggestions"),
               session$ns("query"), k,
               session$ns("query")
             )
@@ -608,16 +789,35 @@ search_server <- function(id, keys) {
     # Validation par clic bouton
     # -------------------------
     observeEvent(input$go, {
-      if (input$query %in% keys)
-        selected(input$query)
+      req(input$query)
+      query <- trimws(input$query)
+      req(nzchar(query))
+
+      show_suggestions(FALSE)
+
+      exact_match <- keys[tolower(keys) == tolower(query)]
+      if (length(exact_match) > 0) {
+        selected(exact_match[[1]])
+        return()
+      }
+
+      suggestions <- filtered_keys()
+      if (length(suggestions) > 0) {
+        selected(suggestions[[1]])
+      }
     })
     
     # -------------------------
     # Validation par suggestion
     # -------------------------
     observeEvent(input$validated, {
+      show_suggestions(FALSE)
       selected(input$validated)
     })
+
+    observeEvent(selected(), {
+      session$sendCustomMessage('flash_cards', list())
+    }, ignoreInit = TRUE)
     
     return(selected)
   })
@@ -650,7 +850,7 @@ search_bar_js <- function(id) {
 #         UI CARD
 ##############################
 
-card_size_tokens <- function(size = c("small", "normal", "large"), scale = 1) {
+card_size_tokens <- function(size = c("small", "normal", "large", "xlarge"), scale = 1) {
   size <- match.arg(size)
 
   if (is.list(scale)) {
@@ -667,14 +867,16 @@ card_size_tokens <- function(size = c("small", "normal", "large"), scale = 1) {
     size,
     small = 260,
     normal = 340,
-    large = 440
+    large = 440,
+    xlarge = 560
   )
 
   base_pad <- switch(
     size,
     small = 16,
     normal = 20,
-    large = 22
+    large = 22,
+    xlarge = 24
   )
 
   list(
@@ -686,8 +888,8 @@ card_size_tokens <- function(size = c("small", "normal", "large"), scale = 1) {
 ui_card <- function(
     title = NULL,
     subtitle = NULL,
-    size = c("small", "normal", "large"),
-    span = c("span1", "span2", "span3", "spanfull"),
+    size = c("small", "normal", "large", "xlarge"),
+    span = c("span1", "span2", "span3", "span4", "span5", "span6", "spanmiddle", "spantier", "spanfull"),
     ...,
     scale = 1
 ) {
@@ -700,7 +902,12 @@ ui_card <- function(
     span1 = "grid-span-1",
     span2 = "grid-span-2",
     span3 = "grid-span-3",
-    spanfull = "grid-span-full"
+    span4 = "grid-span-4",
+    span5 = "grid-span-5",
+    span6 = "grid-span-6",
+    spanmiddle = "grid-span-middle",
+    spantier = "grid-span-tier",
+    spanfull = "grid-span-6"
   )
 
   tokens <- card_size_tokens(size = size, scale = scale)
@@ -824,7 +1031,7 @@ create_multilineplot_card <- function(
 
   defaults <- switch(
     style,
-    executive = list(size = "large", span = "span2"),
+    executive = list(size = "xlarge", span = "span2"),
     compact   = list(size = "normal", span = "span2"),
     minimal   = list(size = "normal", span = "span1")
   )
@@ -862,7 +1069,7 @@ create_special_kpi_card <- function(
 
   defaults <- switch(
     style,
-    executive = list(size = "large", span = "span2"),
+    executive = list(size = "xlarge", span = "span2"),
     compact   = list(size = "normal", span = "span2"),
     minimal   = list(size = "normal", span = "span1")
   )
@@ -898,7 +1105,7 @@ create_summary_kpi_card <- function(
 
   defaults <- switch(
     style,
-    executive = list(size = "large", span = "span2"),
+    executive = list(size = "xlarge", span = "span2"),
     compact   = list(size = "normal", span = "span2"),
     minimal   = list(size = "normal", span = "span1")
   )
@@ -918,6 +1125,42 @@ create_summary_kpi_card <- function(
 
 create_summary_kpi_card_server <- function(id, data_r, unit = "") {
   summary_kpi_server(id = id, data_r = data_r, unit = unit)
+}
+
+create_simple_table_kpi_card <- function(
+    id,
+    data_r,
+    style = c("executive", "compact", "minimal"),
+    scale = 1.00,
+    title = "KPI tableau",
+    subtitle = "Illustration simple",
+    size = NULL,
+    span = NULL
+) {
+  style <- match.arg(style)
+
+  defaults <- switch(
+    style,
+    executive = list(size = "normal", span = "span1"),
+    compact   = list(size = "small",  span = "span1"),
+    minimal   = list(size = "normal", span = "span2")
+  )
+
+  if (is.null(size)) size <- defaults$size
+  if (is.null(span)) span <- defaults$span
+
+  ui_card(
+    title = title,
+    subtitle = subtitle,
+    size = size,
+    span = span,
+    simple_table_kpi_ui(id),
+    scale = scale
+  )
+}
+
+create_simple_table_kpi_card_server <- function(id, data_r) {
+  simple_table_kpi_server(id = id, data_r = data_r)
 }
 
 create_global_score_kpi_card <- function(
@@ -970,7 +1213,7 @@ create_france_map_kpi_card <- function(
 
   defaults <- switch(
     style,
-    executive = list(size = "large", span = "span2"),
+    executive = list(size = "xlarge", span = "span2"),
     compact   = list(size = "normal", span = "span2"),
     minimal   = list(size = "normal", span = "span1")
   )
@@ -1006,7 +1249,7 @@ create_binary_kpi_card <- function(
 
   defaults <- switch(
     style,
-    executive = list(size = "large", span = "span2"),
+    executive = list(size = "xlarge", span = "span2"),
     compact   = list(size = "normal", span = "span2"),
     minimal   = list(size = "normal", span = "span1")
   )
@@ -1043,7 +1286,7 @@ create_groupbar_card <- function(
 
   defaults <- switch(
     style,
-    executive = list(size = "large", span = "span2"),
+    executive = list(size = "xlarge", span = "span2"),
     compact   = list(size = "normal", span = "span2"),
     minimal   = list(size = "normal", span = "span1")
   )
@@ -1081,7 +1324,7 @@ create_stackedbar_card <- function(
 
   defaults <- switch(
     style,
-    executive = list(size = "large", span = "span2"),
+    executive = list(size = "xlarge", span = "span2"),
     compact   = list(size = "normal", span = "span2"),
     minimal   = list(size = "normal", span = "span1")
   )
@@ -1111,10 +1354,10 @@ ui_card_css <- function() {
   tags$style(HTML("
     .ui-card{
       /* base */
-      background: var(--surface-card);
-      border: 1px solid var(--stroke-strong);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-soft);
+      background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(238,246,255,0.88));
+      border: 1px solid rgba(255,255,255,0.72);
+      border-radius: calc(var(--radius-lg) + 4px);
+      box-shadow: 0 8px 18px rgba(31, 67, 109, 0.10), 0 1px 3px rgba(31, 67, 109, 0.07), inset 0 1px 0 rgba(255,255,255,0.76);
       backdrop-filter: blur(12px) saturate(125%);
       position:relative;
       overflow: hidden;
@@ -1145,7 +1388,7 @@ ui_card_css <- function() {
       top:0;
       left:0;
       right:0;
-      height:3px;
+      height:4px;
       background: linear-gradient(90deg, rgba(0,87,184,0.78), rgba(19,163,232,0.65), rgba(90,70,184,0.66));
       opacity:0.75;
     }
@@ -1203,8 +1446,39 @@ ui_card_css <- function() {
       display:none;
       z-index:5;
     }
+    .card-copy-btn:focus,
+    .card-copy-btn:focus-visible,
+    .card-copy-btn:active{
+      outline:none;
+      box-shadow:0 2px 6px rgba(0,0,0,.15);
+    }
+    .dashboard-grid > * {
+      animation: dashboardCardEnter 420ms ease both;
+    }
+
+    @keyframes dashboardCardEnter {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
     .ui-card:hover { box-shadow: var(--shadow-focus); transform: translateY(-4px); transition: transform var(--motion-fast) ease, box-shadow var(--motion-fast) ease; }
     .ui-card:hover .card-copy-btn{ display:block; }
+
+    .ui-card.is-refreshing::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: rgba(255, 255, 255, 0.26);
+      pointer-events: none;
+      animation: cardRefreshFlash 420ms ease;
+    }
+
+    @keyframes cardRefreshFlash {
+      0% { opacity: 0; }
+      35% { opacity: 1; }
+      100% { opacity: 0; }
+    }
     
     
     
@@ -1274,7 +1548,7 @@ barplot_css <- function(){
     }
     
     .dribble-year {
-      font-size: 11px;
+      font-size: 12px;
       fill: #7a8ca3;
       text-anchor: middle;
       dominant-baseline: middle;
@@ -1312,7 +1586,7 @@ barplot_server <- function(id, data_r, style = c("executive", "compact", "minima
     }, once = TRUE)
 
 
-    observeEvent(input$container_size, {
+    observeEvent(list(input$container_size, data_r()), {
 
       width  <- input$container_size$width
       height <- input$container_size$height
@@ -1320,11 +1594,15 @@ barplot_server <- function(id, data_r, style = c("executive", "compact", "minima
       if (is.null(width) || width < 20) return()
 
       df <- data_r()
-      values <- df$value
-      labels <- df$year
+      req(is.data.frame(df), ncol(df) >= 2)
+
+      labels <- df[[1]]
+      values <- suppressWarnings(as.numeric(df[[2]]))
+      if (all(is.na(values))) return()
 
       n <- length(values)
-      max_val <- max(values)
+      if (n < 1) return()
+      max_val <- max(values, na.rm = TRUE)
 
       margin_top    <- height * 0.12
       margin_bottom <- height * 0.18
@@ -1483,7 +1761,7 @@ lineplot_css <- function(){
     }
 
     .line-year {
-      font-size: 11px;
+      font-size: 12px;
       fill: #7a8ca3;
       text-anchor: middle;
       font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -1531,16 +1809,21 @@ lineplot_server <- function(id, data_r, style = c("executive", "compact", "minim
       )
     }, once = TRUE)
 
-    observeEvent(input$container_size, {
+    observeEvent(list(input$container_size, data_r()), {
       width  <- input$container_size$width
       height <- input$container_size$height
 
       if (is.null(width) || width < 20) return()
 
       df <- data_r()
-      values <- df$value
-      labels <- df$year
+      req(is.data.frame(df), ncol(df) >= 2)
+
+      labels <- as.character(df[[1]])
+      values <- suppressWarnings(as.numeric(df[[2]]))
+      if (all(is.na(values))) return()
+
       n <- length(values)
+      if (n < 2) return()
 
       max_val <- max(values, na.rm = TRUE)
       min_val <- min(values, na.rm = TRUE)
@@ -1724,7 +2007,7 @@ special_kpi_css <- function() {
       padding: 7px 10px 0;
       color: #233c59;
       font-weight: 600;
-      font-size: 11px;
+      font-size: 12px;
     }
 
     .special-kpi-spark svg {
@@ -1873,14 +2156,34 @@ summary_kpi_css <- function() {
       height: 100%;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
       min-height: 0;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .summary-kpi-wrap > .shiny-html-output {
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+    }
+
+    .summary-kpi-wrap > .shiny-html-output:first-child {
+      flex: 1 1 58%;
+    }
+
+    .summary-kpi-wrap > .shiny-html-output:last-child {
+      flex: 1 1 42%;
     }
 
     .summary-kpi-fields {
+      flex: 1 1 auto;
+      min-height: 0;
+      height: 100%;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px 12px;
+      align-content: space-between;
+      gap: 6px 12px;
       padding: 10px 12px;
       border: 1px solid rgba(185, 198, 214, 0.50);
       border-radius: 12px;
@@ -1903,6 +2206,7 @@ summary_kpi_css <- function() {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      line-height: 1.2;
     }
 
     .summary-kpi-value {
@@ -1912,9 +2216,16 @@ summary_kpi_css <- function() {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      line-height: 1.2;
     }
 
     .summary-kpi-indicators {
+      flex: 1 1 auto;
+      width: 100%;
+      min-width: 0;
+      min-height: 0;
+      height: 100%;
+      display: flex;
       border: 1px solid rgba(185, 198, 214, 0.50);
       border-radius: 12px;
       background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.38));
@@ -1923,8 +2234,10 @@ summary_kpi_css <- function() {
 
     .summary-kpi-indicators table {
       width: 100%;
+      height: 100%;
+      min-width: 0;
       border-collapse: collapse;
-      table-layout: fixed;
+      table-layout: auto;
       font-size: 10px;
       color: #263c56;
     }
@@ -1937,6 +2250,10 @@ summary_kpi_css <- function() {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    .summary-kpi-indicators tbody tr {
+      height: 33.333%;
     }
 
     .summary-kpi-indicators tr:last-child td { border-bottom: none; }
@@ -1952,6 +2269,7 @@ summary_kpi_css <- function() {
     .summary-kpi-indicators tbody td:first-child {
       text-align: left;
       width: 22%;
+      min-width: 120px;
       color: #1f334d;
       font-weight: 500;
     }
@@ -2006,6 +2324,17 @@ summary_kpi_server <- function(id, data_r, unit = "") {
       tags$div(class = "summary-kpi-fields", tagList(items))
     })
 
+    format_summary_indicator_value <- function(v) {
+      if (is.na(v)) return("-")
+
+      rounded <- round(v, 1)
+      if (abs(rounded - round(rounded)) < 1e-9) {
+        return(paste0(format(round(rounded), big.mark = " ", trim = TRUE, scientific = FALSE), unit))
+      }
+
+      paste0(format(rounded, nsmall = 1, big.mark = " ", trim = TRUE, scientific = FALSE), unit)
+    }
+
     output$indicators <- renderUI({
       d <- data_r()
       ind <- d$indicators
@@ -2024,7 +2353,7 @@ summary_kpi_server <- function(id, data_r, unit = "") {
 
         tags$tr(
           tags$td(labels[i]),
-          lapply(vals, function(v) tags$td(ifelse(is.na(v), "-", paste0(format(round(v, 1), nsmall = 1, trim = TRUE), unit)))),
+          lapply(vals, function(v) tags$td(format_summary_indicator_value(v))),
           tags$td(class = "summary-kpi-spark", sparkline_svg(vals)),
           tags$td(class = "summary-kpi-var", ifelse(is.na(var), "-", paste0(sprintf('%.1f', var), " %")))
         )
@@ -2035,6 +2364,103 @@ summary_kpi_server <- function(id, data_r, unit = "") {
         tags$table(
           tags$thead(tags$tr(tags$th(""), lapply(year_cols, tags$th), tags$th(""), tags$th("Var."))),
           tags$tbody(rows)
+        )
+      )
+    })
+  })
+}
+
+simple_table_kpi_ui <- function(id) {
+  ns <- NS(id)
+  tags$div(
+    class = "simple-table-kpi-wrap",
+    uiOutput(ns("table"))
+  )
+}
+
+simple_table_kpi_css <- function() {
+  tags$style(HTML(" 
+    .simple-table-kpi-wrap {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      border: 1px solid rgba(185, 198, 214, 0.50);
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.38));
+      overflow: hidden;
+    }
+
+    .simple-table-kpi {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 12px;
+      color: #263c56;
+    }
+
+    .simple-table-kpi th,
+    .simple-table-kpi td {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(185, 198, 214, 0.35);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: right;
+    }
+
+    .simple-table-kpi thead th {
+      background: rgba(255,255,255,0.58);
+      font-size: 10px;
+      color: #223b57;
+      font-weight: 700;
+    }
+
+    .simple-table-kpi th:first-child,
+    .simple-table-kpi td:first-child {
+      text-align: left;
+      width: 42%;
+      font-weight: 600;
+      color: #1f334d;
+    }
+
+    .simple-table-kpi tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .simple-table-kpi .delta-pos { color: #0f7a3a; font-weight: 700; }
+    .simple-table-kpi .delta-neg { color: #0d47cf; font-weight: 700; }
+  "))
+}
+
+simple_table_kpi_server <- function(id, data_r) {
+  moduleServer(id, function(input, output, session) {
+    output$table <- renderUI({
+      d <- data_r()
+      req(is.data.frame(d), ncol(d) >= 4)
+
+      tags$table(
+        class = "simple-table-kpi",
+        tags$thead(
+          tags$tr(
+            tags$th(names(d)[1]),
+            tags$th(names(d)[2]),
+            tags$th(names(d)[3]),
+            tags$th(names(d)[4])
+          )
+        ),
+        tags$tbody(
+          lapply(seq_len(nrow(d)), function(i) {
+            delta_raw <- as.character(d[i, 4, drop = TRUE])
+            delta_val <- suppressWarnings(as.numeric(gsub("[^0-9+.-]", "", delta_raw)))
+            delta_cls <- if (is.finite(delta_val) && delta_val > 0) "delta-pos" else "delta-neg"
+
+            tags$tr(
+              tags$td(as.character(d[i, 1, drop = TRUE])),
+              tags$td(as.character(d[i, 2, drop = TRUE])),
+              tags$td(as.character(d[i, 3, drop = TRUE])),
+              tags$td(class = delta_cls, delta_raw)
+            )
+          })
         )
       )
     })
@@ -2092,7 +2518,7 @@ global_score_kpi_css <- function() {
       color: #1f334d;
       font-weight: 650;
       font-size: 15px;
-      line-height: 1.1;
+      line-height: 1.2;
     }
 
     .global-score-kpi-year .lab {
@@ -2256,9 +2682,17 @@ france_map_kpi_css <- function() {
       height: 100%;
       min-height: 0;
       border-radius: 12px;
-      overflow: hidden;
+      overflow: visible;
       background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(244,248,255,0.42));
       border: 1px solid rgba(185, 198, 214, 0.42);
+    }
+
+    .fr-map-kpi-wrap .shiny-plot-output,
+    .fr-map-kpi-wrap .shiny-plot-output img,
+    .fr-map-kpi-wrap .shiny-plot-output canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
     }
 
     .fr-map-kpi-legend {
@@ -2282,12 +2716,53 @@ france_map_kpi_css <- function() {
       font-weight: 700;
       color: #12345a;
     }
+
+    .fr-map-kpi-legend .legend-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      opacity: 0.78;
+      margin-bottom: 4px;
+    }
+
+    .fr-map-kpi-legend .legend-gradient {
+      width: 160px;
+      height: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(18,52,90,0.22);
+      background: linear-gradient(90deg, #CFE2FF 0%, #07b2e7 50%, #038286 100%);
+      margin: 4px 0 6px 0;
+    }
+
+    .fr-map-kpi-legend .legend-scale {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 10px;
+      color: #314965;
+    }
+
+    .fr-map-kpi-legend .legend-scale .mid {
+      text-align: center;
+      flex: 1;
+    }
   "))
 }
 
 france_map_kpi_server <- function(id, data_r) {
   moduleServer(id, function(input, output, session) {
     shp_cache <- reactiveVal(NULL)
+
+    normalize_geometries <- function(sf_obj) {
+      if (!inherits(sf_obj, "sf")) return(sf_obj)
+
+      sf_obj <- sf::st_make_valid(sf_obj)
+      if (any(!sf::st_is_valid(sf_obj))) {
+        sf_obj <- sf::st_buffer(sf_obj, 0)
+      }
+
+      sf_obj
+    }
 
     get_shape <- function(path) {
       cached <- shp_cache()
@@ -2304,59 +2779,156 @@ france_map_kpi_server <- function(id, data_r) {
         names(shp)[names(shp) == code_col] <- "code"
       }
       shp$code <- as.character(shp$code)
+
+      if (!"dep_name" %in% names(shp)) {
+        name_col <- names(shp)[grep("^nom$|nom_dep|lib|name", names(shp), ignore.case = TRUE)][1]
+        if (!is.na(name_col)) {
+          names(shp)[names(shp) == name_col] <- "dep_name"
+        } else {
+          shp$dep_name <- shp$code
+        }
+      }
+      shp$dep_name <- as.character(shp$dep_name)
+
+      shp <- normalize_geometries(shp)
       shp_cache(shp)
       shp
     }
 
-    output$map <- renderPlot({
-      d <- data_r()
-      req(is.list(d), !is.null(d$geojson_path), !is.null(d$values), !is.null(d$dept_code))
+    get_client_dim <- function(axis = c("width", "height")) {
+      axis <- match.arg(axis)
+      out_id <- session$ns("map")
+      key_raw <- paste0("output_", out_id, "_", axis)
+      key_dot <- paste0("output_", gsub("-", ".", out_id, fixed = TRUE), "_", axis)
 
-      shp <- get_shape(d$geojson_path)
-      vals <- d$values
-      validate(need(is.data.frame(vals), ncol(vals) >= 2, "Table de valeurs invalide"))
-      names(vals)[1:2] <- c("code", "value")
-      vals$code <- as.character(vals$code)
-      vals$value <- as.numeric(vals$value)
-
-      map_df <- merge(shp, vals, by = "code", all.x = TRUE)
-      target <- as.character(d$dept_code)[1]
-
-      target_sf <- map_df[map_df$code == target, ]
-      validate(need(nrow(target_sf) == 1, paste0("Département cible introuvable: ", target)))
-
-      nb_mask <- lengths(sf::st_touches(map_df, target_sf, sparse = TRUE)) > 0
-      map_df$zone <- "Autres"
-      map_df$zone[nb_mask] <- "Limitrophes"
-      map_df$zone[map_df$code == target] <- "Cible"
-
-      base_col <- rep("#E2E8F0", nrow(map_df))
-      base_col[map_df$zone == "Limitrophes"] <- "#D1D9E8"
-      base_col[map_df$zone == "Cible"] <- "#CFE2FF"
-
-      val_range <- range(vals$value, na.rm = TRUE)
-      has_vals <- all(is.finite(val_range))
-      pal <- grDevices::colorRampPalette(c("#CFE2FF", "#13A3E8", "#0057B8"))(100)
-      idx <- if (has_vals) {
-        pmax(1, pmin(100, round((map_df$value - val_range[1]) / max(1e-9, diff(val_range)) * 99) + 1))
-      } else {
-        rep(1, nrow(map_df))
+      val <- session$clientData[[key_raw]]
+      if (!is.numeric(val) || is.na(val)) {
+        val <- session$clientData[[key_dot]]
       }
-      fill_col <- base_col
-      fill_col[map_df$zone %in% c("Cible", "Limitrophes") & !is.na(map_df$value)] <- pal[idx[map_df$zone %in% c("Cible", "Limitrophes") & !is.na(map_df$value)]]
+      if (!is.numeric(val) || is.na(val)) {
+        return(NA_real_)
+      }
+      as.numeric(val)
+    }
 
-      oldpar <- par(no.readonly = TRUE)
-      on.exit(par(oldpar))
-      par(mar = c(0, 0, 0, 0), bg = NA)
-
-      plot(sf::st_geometry(map_df), col = fill_col, border = "#FFFFFF", lwd = 0.6)
-      plot(sf::st_geometry(target_sf), add = TRUE, border = "#FF3B30", lwd = 1.8)
-
-      target_cent <- sf::st_coordinates(sf::st_centroid(sf::st_geometry(target_sf)))[1, ]
-      target_val <- map_df$value[map_df$code == target][1]
-      lbl <- if (is.finite(target_val)) paste0(target, "\n", sprintf("%.2f%%", target_val)) else paste0(target, "\nNA")
-      text(target_cent[1], target_cent[2], labels = lbl, cex = 0.85, font = 2, col = "#102A43")
+    plot_width <- reactive({
+      w <- get_client_dim("width")
+      if (!is.finite(w) || w < 200) return(800)
+      w
     })
+
+    plot_height <- reactive({
+      h <- get_client_dim("height")
+      if (!is.finite(h) || h < 120) return(320)
+      h
+    })
+
+    output$map <- renderPlot(
+      {
+        d <- data_r()
+        req(is.list(d), !is.null(d$geojson_path), !is.null(d$values), !is.null(d$dept_code))
+
+        shp <- get_shape(d$geojson_path)
+        vals <- d$values
+        validate(need(is.data.frame(vals), ncol(vals) >= 2, "Table de valeurs invalide"))
+        names(vals)[1:2] <- c("code", "value")
+        vals$code <- as.character(vals$code)
+        vals$value <- as.numeric(vals$value)
+
+        map_df <- merge(shp, vals, by = "code", all.x = TRUE)
+        map_df <- normalize_geometries(map_df)
+
+        non_empty <- tryCatch(!sf::st_is_empty(map_df), error = function(e) rep(TRUE, nrow(map_df)))
+        map_df <- map_df[non_empty, ]
+
+        target <- as.character(d$dept_code)[1]
+        target_sf <- map_df[map_df$code == target, ]
+        validate(need(nrow(target_sf) == 1, paste0("Département cible introuvable: ", target)))
+
+        map_ops <- map_df
+        is_longlat <- tryCatch(isTRUE(sf::st_is_longlat(map_ops)), error = function(e) FALSE)
+        if (is_longlat) {
+          map_ops <- tryCatch(sf::st_transform(map_ops, 2154), error = function(e) map_ops)
+        }
+
+        target_ops <- map_ops[map_ops$code == target, ]
+        validate(need(nrow(target_ops) == 1, paste0("Département cible introuvable après projection: ", target)))
+
+        nb_mask <- tryCatch({
+          lengths(sf::st_touches(map_ops, target_ops, sparse = TRUE)) > 0
+        }, error = function(e) {
+          rep(FALSE, nrow(map_ops))
+        })
+
+        map_ops$zone <- "Autres"
+        map_ops$zone[nb_mask] <- "Limitrophes"
+        map_ops$zone[map_ops$code == target] <- "Cible"
+
+        focus_sf <- map_ops[map_ops$zone %in% c("Cible", "Limitrophes"), ]
+        if (nrow(focus_sf) == 0) {
+          focus_sf <- target_ops
+        }
+
+        map_view <- map_ops
+        bb <- tryCatch(sf::st_bbox(focus_sf), error = function(e) NULL)
+        if (!is.null(bb) && all(is.finite(as.numeric(bb)))) {
+          xspan <- max(1, as.numeric(bb["xmax"] - bb["xmin"]))
+          yspan <- max(1, as.numeric(bb["ymax"] - bb["ymin"]))
+          pad_x <- xspan * 0.132
+          pad_y <- yspan * 0.16
+
+          view_bb <- c(
+            xmin = as.numeric(bb["xmin"] - pad_x),
+            ymin = as.numeric(bb["ymin"] - pad_y),
+            xmax = as.numeric(bb["xmax"] + pad_x),
+            ymax = as.numeric(bb["ymax"] + pad_y)
+          )
+
+          cropped <- tryCatch(suppressWarnings(sf::st_crop(map_ops, view_bb)), error = function(e) map_ops)
+          if (nrow(cropped) > 0) {
+            map_view <- cropped
+          }
+        }
+
+        base_col <- rep("#E2E8F0", nrow(map_view))
+        base_col[map_view$zone == "Limitrophes"] <- "#D1D9E8"
+        base_col[map_view$zone == "Cible"] <- "#CFE2FF"
+
+        val_range <- range(vals$value, na.rm = TRUE)
+        has_vals <- all(is.finite(val_range))
+        pal <- grDevices::colorRampPalette(c("#CFE2FF", "#07b2e7", "#038286"))(100)
+        idx <- if (has_vals) {
+          pmax(1, pmin(100, round((map_view$value - val_range[1]) / max(1e-9, diff(val_range)) * 99) + 1))
+        } else {
+          rep(1, nrow(map_view))
+        }
+
+        fill_col <- base_col
+        mask <- map_view$zone %in% c("Cible", "Limitrophes") & !is.na(map_view$value)
+        fill_col[mask] <- pal[idx[mask]]
+
+        par(mar = c(0, 0, 0, 0), xaxs = "i", yaxs = "i")
+        plot(sf::st_geometry(map_view), col = fill_col, border = "#FFFFFF", lwd = 0.6, asp = 1)
+        plot(sf::st_geometry(target_ops), add = TRUE, border = "#bd026f", lwd = 2.1)
+
+        label_df <- map_ops[map_ops$zone %in% c("Cible", "Limitrophes") & is.finite(map_ops$value), ]
+        if (nrow(label_df) > 0) {
+          label_pts <- tryCatch({
+            sf::st_coordinates(sf::st_point_on_surface(sf::st_geometry(label_df)))[, 1:2, drop = FALSE]
+          }, error = function(e) {
+            NULL
+          })
+
+          if (!is.null(label_pts) && nrow(label_pts) == nrow(label_df)) {
+            label_txt <- paste0(label_df$code, "\n", sprintf("%.2f%%", label_df$value))
+            text(label_pts[, 1], label_pts[, 2], labels = label_txt, cex = 0.62, font = 2, col = "#102A43")
+          }
+        }
+      },
+      width = function() plot_width(),
+      height = function() plot_height(),
+      res = 96
+    )
 
     output$legend <- renderUI({
       d <- data_r()
@@ -2369,9 +2941,14 @@ france_map_kpi_server <- function(id, data_r) {
       }
       tags$div(
         class = "fr-map-kpi-legend",
-        tags$div(tags$span(class = "v", sprintf("%.2f%%", min(v))), "Min"),
-        tags$div(tags$span(class = "v", sprintf("%.2f%%", mean(v))), "Moyenne"),
-        tags$div(tags$span(class = "v", sprintf("%.2f%%", max(v))), "Max")
+        tags$div(class = "legend-title", "Échelle des valeurs"),
+        tags$div(class = "legend-gradient"),
+        tags$div(
+          class = "legend-scale",
+          tags$span(class = "v", sprintf("%.2f%%", min(v))),
+          tags$span(class = "v mid", sprintf("%.2f%%", mean(v))),
+          tags$span(class = "v", sprintf("%.2f%%", max(v)))
+        )
       )
     })
   })
@@ -2400,7 +2977,7 @@ binary_kpi_css <- function() {
       border-spacing: 0 10px;
       table-layout: fixed;
       color: #2a3f58;
-      font-size: 11px;
+      font-size: 12px;
     }
 
     .binary-kpi-table th,
@@ -2411,7 +2988,7 @@ binary_kpi_css <- function() {
     }
 
     .binary-kpi-table thead th {
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 600;
       color: #607891;
       letter-spacing: 0.02em;
@@ -2452,7 +3029,7 @@ binary_kpi_css <- function() {
     }
 
     .binary-kpi-cell.value-1 {
-      background: linear-gradient(135deg, #13A3E8, #49BDF0);
+      background: linear-gradient(135deg, #07b2e7, #49BDF0);
       border-color: rgba(11, 122, 180, 0.76);
       box-shadow: 0 6px 16px rgba(19, 163, 232, 0.24);
     }
@@ -2465,8 +3042,9 @@ binary_kpi_css <- function() {
     }
 
     .binary-kpi-cell:hover {
-      transform: translateY(-1px);
-      filter: saturate(1.03);
+      transform: translateY(-4px) scale(1.02);
+      filter: saturate(1.14) brightness(1.03);
+      box-shadow: 0 14px 28px rgba(24, 67, 122, 0.30);
     }
 
     @keyframes binaryCellPop {
@@ -2561,10 +3139,17 @@ multilineplot_css <- function(){
     .multilineplot-container{
       width: 100%;
       flex: 1 1 auto;
+      min-width: 0;
       min-height: 120px;
       border-radius: 12px;
       background: linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0.10));
       position: relative;
+      overflow: visible;
+    }
+
+    .multilineplot-container svg {
+      display: block;
+      overflow: visible;
     }
 
     .multilineplot-legend-side {
@@ -2574,7 +3159,7 @@ multilineplot_css <- function(){
       justify-content: center;
       align-items: flex-start;
       color: #5c6f85;
-      font-size: 11px;
+      font-size: 12px;
     }
 
     .multilineplot-legend-side .shiny-html-output {
@@ -2593,7 +3178,7 @@ multilineplot_css <- function(){
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 11px;
+      font-size: 12px;
       color: #5c6f85;
       font-weight: 400;
       line-height: 1.2;
@@ -2613,10 +3198,10 @@ multilineplot_css <- function(){
       position: absolute;
       pointer-events: none;
       background: rgba(255,255,255,0.96);
-      border: 1px solid var(--stroke-strong);
+      border: 1px solid rgba(255,255,255,0.72);
       padding: 10px 12px;
       border-radius: 10px;
-      box-shadow: var(--shadow-soft);
+      box-shadow: 0 8px 18px rgba(31, 67, 109, 0.10), 0 1px 3px rgba(31, 67, 109, 0.07), inset 0 1px 0 rgba(255,255,255,0.76);
       backdrop-filter: blur(8px);
       display: none;
       z-index: 999;
@@ -2703,7 +3288,7 @@ multilineplot_css <- function(){
     }
 
     .multiline-year {
-      font-size: 11px;
+      font-size: 12px;
       fill: #7a8ca3;
       text-anchor: middle;
       font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -2756,7 +3341,7 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
       )
     }, once = TRUE)
 
-    observeEvent(input$container_size, {
+    observeEvent(list(input$container_size, data_r()), {
       width  <- input$container_size$width
       height <- input$container_size$height
 
@@ -2799,9 +3384,15 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
       axis_ticks <- seq(axis_min, axis_max, by = step)
       axis_range <- max(axis_max - axis_min, 1e-9)
 
+      format_multiline_value <- function(x, digits = 1) {
+        formatted <- format(round(x, digits), big.mark = " ", trim = TRUE, scientific = FALSE)
+        formatted <- sub("^(-?)0+([1-9][0-9 ]*)$", "\\1\\2", formatted, perl = TRUE)
+        formatted
+      }
+
       margin_top <- height * 0.14
       margin_bottom <- height * 0.20
-      margin_side <- width * 0.08
+      margin_side <- max(46, width * 0.10)
 
       usable_h <- height - margin_top - margin_bottom
       usable_w <- width - (margin_side * 2)
@@ -2885,9 +3476,9 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
               tick <- axis_ticks[i]
               y <- height - margin_bottom - ((tick - axis_min) / axis_range) * usable_h
               tick_label <- if (abs(tick - round(tick)) < 1e-9) {
-                paste0(sprintf("%.0f", tick), unit)
+                paste0(format_multiline_value(tick, digits = 0), unit)
               } else {
-                paste0(sprintf("%.1f", tick), unit)
+                paste0(format_multiline_value(tick, digits = 1), unit)
               }
 
               tagList(
@@ -2899,7 +3490,7 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
                   class = if (i == 1) "multiline-axis" else "multiline-grid"
                 ),
                 tags$text(
-                  x = margin_side - 6,
+                  x = margin_side - 10,
                   y = y + 3,
                   class = "multiline-yhint",
                   tick_label
@@ -2930,7 +3521,7 @@ multilineplot_server <- function(id, data_r, style = c("executive", "compact", "
                     fill = colors[i],
                     `data-series` = series_names[i],
                     `data-year` = years[j],
-                    `data-value` = paste0(round(values[j], 1), unit),
+                    `data-value` = paste0(format_multiline_value(values[j], digits = 1), unit),
                     `data-color` = colors[i]
                   )
                 })
@@ -3004,7 +3595,7 @@ stackedBar_html_css <- function() {
   flex-direction: column;
   justify-content: center;
   gap: 10px;
-  font-size: 11px;
+  font-size: 12px;
   color: #5c6f85;
 }
 
@@ -3114,7 +3705,7 @@ stackedBar_html_css <- function() {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: white;
   transition: transform .2s ease;
@@ -3141,7 +3732,7 @@ stackedBar_html_css <- function() {
 /* year label */
 .stack-year{
   margin-top: 8px;
-  font-size: 11px;
+  font-size: 12px;
   color: #7a8ca3;
   text-align: center;
 }
@@ -3178,11 +3769,11 @@ stackedBar_html_css <- function() {
   position: absolute;
   pointer-events: none;
   background: rgba(255,255,255,0.96);
-  border: 1px solid var(--stroke-strong);
+  border: 1px solid rgba(255,255,255,0.72);
   padding: 12px 14px;
   border-radius: 10px;
   font-size: 12px;
-  box-shadow: var(--shadow-soft);
+  box-shadow: 0 8px 18px rgba(31, 67, 109, 0.10), 0 1px 3px rgba(31, 67, 109, 0.07), inset 0 1px 0 rgba(255,255,255,0.76);
   backdrop-filter: blur(8px);
   display: none;
   z-index: 999;
@@ -3223,6 +3814,8 @@ stackedBar_server <- function(id, data_r, unit = "") {
     output$legend <- renderUI({
       
       df <- data_r()
+      req(is.data.frame(df), ncol(df) >= 2)
+
       values <- df[, -1, drop = FALSE]
       vars <- colnames(values)
       k <- ncol(values)
@@ -3249,16 +3842,21 @@ stackedBar_server <- function(id, data_r, unit = "") {
     output$bars <- renderUI({
       
       df <- data_r()
-      
-      years  <- df$year
-      values <- df[, -1, drop = FALSE]
+      req(is.data.frame(df), ncol(df) >= 2)
+
+      years  <- as.character(df[[1]])
+      values <- as.data.frame(lapply(df[, -1, drop = FALSE], function(x) suppressWarnings(as.numeric(x))))
       vars   <- colnames(values)
+      if (ncol(values) == 0) return(NULL)
+      if (all(is.na(as.matrix(values)))) return(NULL)
       
       totals    <- rowSums(values, na.rm = TRUE)
       max_total <- max(totals, na.rm = TRUE)
       
       n <- nrow(df)
       k <- ncol(values)
+
+      label_font_size <- max(8, min(12, 14 - (0.45 * n)))
       
       colors <- relyens_chart_colors(k)
       
@@ -3298,7 +3896,7 @@ stackedBar_server <- function(id, data_r, unit = "") {
                 # SEGMENTS
                 lapply(seq_len(k), function(j) {
                   
-                  val <- values[i, j]
+                  val <- values[[j]][i]
                   
                   segment_pct <- if (total_val > 0) {
                     (val / total_val) * 100
@@ -3314,7 +3912,7 @@ stackedBar_server <- function(id, data_r, unit = "") {
                     ),
                     `data-index` = i,
                     `data-col`   = vars[j],
-                    paste0(round(val, 1), unit)
+                    if (is.na(val)) "" else paste0(round(val, 1), unit)
                   )
                 })
               )
@@ -3335,6 +3933,7 @@ stackedBar_server <- function(id, data_r, unit = "") {
 
 
 stackedBar_js <- function(id, df, unit){
+  label_col <- names(df)[1]
   
   json <- jsonlite::toJSON(df, auto_unbox = TRUE, dataframe = "rows")
   
@@ -3350,6 +3949,7 @@ stackedBar_js <- function(id, df, unit){
 
       const data = ", json, ";
       const unit = '", unit, "';
+      const labelCol = '", label_col, "';
 
       graph.querySelectorAll('.stack-seg').forEach(seg => {
 
@@ -3359,11 +3959,11 @@ stackedBar_js <- function(id, df, unit){
           const row = data[index];
 
           let total = 0;
-          let html = `<div class='tooltip-title'>${row.year}</div>`;
+          let html = `<div class='tooltip-title'>${row[labelCol] ?? ''}</div>`;
 
           Object.keys(row).forEach(k => {
 
-            if(k === 'year') return;
+            if(k === labelCol) return;
 
             const v = Number(row[k] || 0);
             total += v;
@@ -3494,6 +4094,7 @@ groupBar_html_css <- function() {
 
 .group-graph{
   flex:1 1 auto;
+  min-width: 0;
   position:relative;
   display:flex;
   border-radius: 12px;
@@ -3509,10 +4110,11 @@ groupBar_html_css <- function() {
 .group-graph > .shiny-html-output{
   display:flex;
   align-items:flex-end;
-  justify-content:space-evenly;
-  gap:32px;
+  justify-content:space-between;
+  gap:clamp(8px, 2vw, 24px);
   width:100%;
   height:100%;
+  min-width:0;
 }
 
 /* ============================= */
@@ -3525,7 +4127,8 @@ groupBar_html_css <- function() {
   align-items:center;
   height:100%;
   flex:1 1 0;
-  max-width:120px;
+  min-width:0;
+  max-width:unset;
 }
 
 /* ============================= */
@@ -3544,7 +4147,7 @@ groupBar_html_css <- function() {
 .group-bars{
   display:flex;
   align-items:flex-end;
-  gap:7px;
+  gap:clamp(4px, 0.8vw, 7px);
   width:100%;
   height:100%;
   justify-content:center;
@@ -3556,7 +4159,7 @@ groupBar_html_css <- function() {
 
 .group-bar{
   position:relative;
-  width:20px;
+  width:clamp(12px, 1.25vw, 20px);
   border-radius:5px 5px 1px 1px;
   border: 1px solid rgba(255,255,255,0.18);
   display:flex;
@@ -3597,11 +4200,11 @@ groupBar_html_css <- function() {
   position:absolute;
   pointer-events:none;
   background:rgba(255,255,255,0.96);
-  border: 1px solid var(--stroke-strong);
+  border: 1px solid rgba(255,255,255,0.72);
   padding:12px 14px;
   border-radius:10px;
   font-size:12px;
-  box-shadow: var(--shadow-soft);
+  box-shadow: 0 8px 18px rgba(31, 67, 109, 0.10), 0 1px 3px rgba(31, 67, 109, 0.07), inset 0 1px 0 rgba(255,255,255,0.76);
   backdrop-filter: blur(8px);
   display:none;
   z-index:999;
@@ -3639,6 +4242,8 @@ groupBar_server <- function(id, data_r, unit = "") {
     output$legend <- renderUI({
       
       df <- data_r()
+      req(is.data.frame(df), ncol(df) >= 2)
+
       values <- df[, -1, drop = FALSE]
       vars <- colnames(values)
       k <- ncol(values)
@@ -3661,15 +4266,20 @@ groupBar_server <- function(id, data_r, unit = "") {
     output$bars <- renderUI({
       
       df <- data_r()
+      req(is.data.frame(df), ncol(df) >= 2)
       
-      years  <- df$year
-      values <- df[, -1, drop = FALSE]
+      years  <- as.character(df[[1]])
+      values <- as.data.frame(lapply(df[, -1, drop = FALSE], function(x) suppressWarnings(as.numeric(x))))
       vars   <- colnames(values)
+      if (ncol(values) == 0) return(NULL)
+      if (all(is.na(as.matrix(values)))) return(NULL)
       
-      max_val <- max(values, na.rm = TRUE)
+      max_val <- max(as.matrix(values), na.rm = TRUE)
       
       n <- nrow(df)
       k <- ncol(values)
+
+      label_font_size <- max(8, min(12, 14 - (0.45 * n)))
       
       colors <- relyens_chart_colors(k)
       
@@ -3688,7 +4298,7 @@ groupBar_server <- function(id, data_r, unit = "") {
                 
                 lapply(seq_len(k), function(j) {
                   
-                  val <- values[i, j]
+                  val <- values[[j]][i]
                   
                   height_pct <- if(max_val > 0){
                     (val / max_val) * 100
@@ -3702,13 +4312,17 @@ groupBar_server <- function(id, data_r, unit = "") {
                     ),
                     `data-index` = i,
                     `data-col`   = vars[j],
-                    paste0(round(val,1), unit)
+                    if (is.na(val)) "" else paste0(round(val,1), unit)
                   )
                 })
               )
             ),
             
-            tags$div(class="group-year", years[i])
+            tags$div(
+              class="group-year",
+              style = paste0("font-size:", sprintf("%.1f", label_font_size), "px;"),
+              years[i]
+            )
           )
         }),
         
@@ -3722,6 +4336,7 @@ groupBar_server <- function(id, data_r, unit = "") {
 
 
 groupBar_js <- function(id, df, unit){
+  label_col <- names(df)[1]
   
   json <- jsonlite::toJSON(df, auto_unbox = TRUE, dataframe = "rows")
   
@@ -3737,6 +4352,7 @@ groupBar_js <- function(id, df, unit){
 
       const data = ", json, ";
       const unit = '", unit, "';
+      const labelCol = '", label_col, "';
 
       graph.querySelectorAll('.group-bar').forEach(bar => {
 
@@ -3745,11 +4361,11 @@ groupBar_js <- function(id, df, unit){
           const index = Number(this.dataset.index) - 1;
           const row = data[index];
 
-          let html = `<div class='tooltip-title'>${row.year}</div>`;
+          let html = `<div class='tooltip-title'>${row[labelCol] ?? ''}</div>`;
 
           Object.keys(row).forEach(k => {
 
-            if(k === 'year') return;
+            if(k === labelCol) return;
 
             const v = Number(row[k] || 0);
 

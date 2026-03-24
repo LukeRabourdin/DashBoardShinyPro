@@ -42,7 +42,11 @@ emoji_path <- if (file.exists("Dashboard/Emojis")) {
 
 addResourcePath("emojis", emoji_path)
 
-departements_geojson <- if (file.exists("Dashboard/departements.json")) {
+departements_geojson <- if (file.exists("Dashboard/departements.geojson")) {
+  "Dashboard/departements.geojson"
+} else if (file.exists("departements.geojson")) {
+  "departements.geojson"
+} else if (file.exists("Dashboard/departements.json")) {
   "Dashboard/departements.json"
 } else if (file.exists("departements.json")) {
   "departements.json"
@@ -91,9 +95,9 @@ content_map <- list(
         style = "executive",
         scale = 1.00,
         title = "Synthèse sélection",
-        subtitle = "10 champs + 3 indicateurs",
-        size = "large",
-        span = "span2"
+        subtitle = "10 champs + 3 indicateurs · exemple spanfull",
+        size = "xlarge",
+        span = "spanfull"
       ),
       create_global_score_kpi_card(
         id = "global_score_kpi_1",
@@ -101,19 +105,29 @@ content_map <- list(
         style = "executive",
         scale = 1.00,
         title = "Score global",
-        subtitle = "Lecture immédiate de position",
+        subtitle = "Lecture immédiate de position · exemple spantier",
         size = "normal",
-        span = "span1"
+        span = "spantier"
       ),
       create_france_map_kpi_card(
         id = "france_map_kpi_1",
         data_r = NULL,
         style = "executive",
-        scale = 1.02,
+        scale = 1.05,
         title = "Comparaison géographique",
         subtitle = "Département cible vs limitrophes",
         size = "large",
         span = "span2"
+      ),
+      create_simple_table_kpi_card(
+        id = "simple_table_kpi_1",
+        data_r = NULL,
+        style = "executive",
+        scale = 1.00,
+        title = "KPI tableau simple",
+        subtitle = "Exemple d'illustration · exemple spanmiddle",
+        size = "normal",
+        span = "spanmiddle"
       ),
       # Exemples du pipeline factory "R-like" : create_barplot_card(...)
       create_barplot_card(
@@ -222,6 +236,7 @@ ui <- fluidPage(
   special_kpi_css(),
   binary_kpi_css(),
   summary_kpi_css(),
+  simple_table_kpi_css(),
   global_score_kpi_css(),
   france_map_kpi_css(),
   ui_card_css(),
@@ -229,10 +244,15 @@ ui <- fluidPage(
   #stackedBar_css(),
   stackedBar_html_css(),
   groupBar_html_css(),
+  dashboard_layout_css(),
   theme = bs_theme(version = 5),
-  
-  ui_header(),
-  ui_search_bar("search"),
+  tags$div(
+    class = "top-toolbar",
+    tags$div(class = "top-toolbar-title", "Dashboard générique"),
+    tags$div(class = "top-toolbar-center", ui_search_bar("search")),
+    tags$div(class = "top-toolbar-spacer")
+  ),
+  tags$div(class = "debug-key-wrap", textOutput("debug")),
   
   ui_tabs(
     "tabs",
@@ -337,6 +357,22 @@ server<-function(input, output, session) {
   create_france_map_kpi_card_server(
     id = "france_map_kpi_1",
     data_r = france_map_data
+  )
+
+  simple_table_kpi_data <- reactive({
+    data.frame(
+      KPI = c("Fréquence", "Coût moyen", "Gravité", "Taux d'exposition"),
+      `2023` = c("3.5", "11.8", "2.1", "74%"),
+      `2024` = c("3.2", "12.1", "2.4", "77%"),
+      `Δ` = c("-8.6%", "+2.5%", "+14.3%", "+4.1%"),
+      check.names = FALSE,
+      stringsAsFactors = FALSE
+    )
+  })
+
+  create_simple_table_kpi_card_server(
+    id = "simple_table_kpi_1",
+    data_r = simple_table_kpi_data
   )
   
   bar_data <- reactive({
